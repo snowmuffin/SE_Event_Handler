@@ -7,7 +7,11 @@ using Sandbox.Game.Multiplayer;
 using Torch.Utils;
 using System;
 using System.Collections.Generic;
-using Sandbox.Game.World; // Required for faction management
+using Sandbox.Game.World;
+using System.Linq;
+using Sandbox.Game.Entities;
+using VRageMath;
+using VRage.Game; // Required for faction management
 
 namespace TorchPlugin
 {
@@ -220,6 +224,117 @@ namespace TorchPlugin
                     Respond($"    Is On Planet With Atmosphere: {stationData.IsOnPlanetWithAtmosphere}");
                     Respond($"    Station Entity ID: {stationData.StationEntityId}");
                 }
+            }
+        }
+
+        // ReSharper disable once UnusedMember.Global
+        [Command("cmd deletestation", "EventHandler: Deletes all stations for a specific faction")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void DeleteStations(string factionTag)
+        {
+            if (Sandbox.Game.World.MySession.Static == null || Sandbox.Game.World.MySession.Static.Factions == null)
+            {
+                Respond("Stations data is not available. Ensure the game session is running.");
+                return;
+            }
+
+            var factions = Sandbox.Game.World.MySession.Static.Factions.Factions;
+            var faction = factions.Values.FirstOrDefault(f => f.Tag.Equals(factionTag, StringComparison.OrdinalIgnoreCase));
+
+            if (faction == null)
+            {
+                Respond($"Faction with tag '{factionTag}' not found.");
+                return;
+            }
+
+            // Use the reflected getter to access the stations
+            var stations = _stations((MyFaction)faction);
+            if (stations == null || stations.Count == 0)
+            {
+                Respond($"Faction '{faction.Tag}' has no stations to delete.");
+                return;
+            }
+
+            Respond($"Deleting all stations for faction '{faction.Tag}':");
+            foreach (var station in stations.Values.ToList())
+            {
+                // Attempt to get the station entity and close it
+                if (MyEntities.TryGetEntityById(station.StationEntityId, out var entity))
+                {
+                    entity.Close();
+                    Respond($"  Deleted station entity with ID: {station.StationEntityId}");
+                }
+
+                // Remove the station from the economy system
+                Sandbox.Game.World.MySession.Static.GetComponent<Sandbox.Game.SessionComponents.MySessionComponentEconomy>()?.RemoveStationGrid(station.Id);
+                Respond($"  Removed station with ID: {station.Id}");
+            }
+
+            // Clear the stations from the faction
+            stations.Clear();
+            Respond($"All stations for faction '{faction.Tag}' have been deleted.");
+        }
+
+        // ReSharper disable once UnusedMember.Global
+        [Command("cmd addstation", "EventHandler: Adds a new station to a specific faction")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void AddStation(string factionTag, string prefabName, string position)
+        {
+            if (Sandbox.Game.World.MySession.Static == null || Sandbox.Game.World.MySession.Static.Factions == null)
+            {
+                Respond("Stations data is not available. Ensure the game session is running.");
+                return;
+            }
+
+            var factions = Sandbox.Game.World.MySession.Static.Factions.Factions;
+            var faction = factions.Values.FirstOrDefault(f => f.Tag.Equals(factionTag, StringComparison.OrdinalIgnoreCase));
+
+            if (faction == null)
+            {
+                Respond($"Faction with tag '{factionTag}' not found.");
+                return;
+            }
+
+            // Log the received position for debugging
+            Respond($"Received position: {position}");
+
+            // Parse "X: Y: Z:" format into Vector3D
+            try
+            {
+
+
+                var stationPosition = new Vector3D(-2070937.80260461,2715596.40970551,-3101761.2621626 );
+
+                // Validate the parsed position
+                if (stationPosition == Vector3D.Zero)
+                {
+                    Respond("Position cannot be (0,0,0). Please provide a valid position.");
+                    return;
+                }
+
+                // Create a new station
+                var newStationId = VRage.MyEntityIdentifier.AllocateId();
+                var newStation = new MyStation(
+                    newStationId,
+                    stationPosition,
+                    MyStationTypeEnum.SpaceStation, // Use an existing type like SpaceStation
+                    (MyFaction)faction,
+                    prefabName,
+                    null
+                );
+
+                // Add the station to the faction
+                var stations = _stations((MyFaction)faction);
+                stations[newStationId] = newStation;
+
+                Respond($"Added new station to faction '{faction.Tag}':");
+                Respond($"  Station ID: {newStationId}");
+                Respond($"  Prefab Name: {prefabName}");
+                Respond($"  Position: {stationPosition}");
+            }
+            catch (FormatException)
+            {
+                Respond($"Invalid position format: '{position}'. Ensure the values are numeric and in the format 'X:<value> Y:<value> Z:<value>'.");
             }
         }
 
