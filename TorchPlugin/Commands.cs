@@ -3,7 +3,11 @@ using Shared.Plugin;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
-using Sandbox.Game.Multiplayer; // Required for faction management
+using Sandbox.Game.Multiplayer;
+using Torch.Utils;
+using System;
+using System.Collections.Generic;
+using Sandbox.Game.World; // Required for faction management
 
 namespace TorchPlugin
 {
@@ -176,5 +180,51 @@ namespace TorchPlugin
                 }
             }
         }
+
+        // ReSharper disable once UnusedMember.Global
+        [Command("cmd stations", "EventHandler: Lists all stations in the game session with detailed information")]
+        [Permission(MyPromoteLevel.None)]
+        public void ListStations()
+        {
+            if (Sandbox.Game.World.MySession.Static == null || Sandbox.Game.World.MySession.Static.Factions == null)
+            {
+                Respond("Stations data is not available. Ensure the game session is running.");
+                return;
+            }
+
+            var factions = Sandbox.Game.World.MySession.Static.Factions.Factions;
+
+            Respond("Detailed information about stations in the current game session:");
+            foreach (var faction in factions)
+            {
+                var factionData = faction.Value;
+
+                // Use the reflected getter to access the stations
+                var stations = _stations((MyFaction)factionData);
+                if (stations == null || stations.Count == 0)
+                {
+                    Respond($"Faction '{factionData.Tag}' has no stations.");
+                    continue;
+                }
+
+                Respond($"Faction '{factionData.Tag}' Stations:");
+                foreach (var station in stations)
+                {
+                    var stationData = station.Value;
+                    Respond($"  Station ID: {station.Key}");
+                    Respond($"    Faction ID: {factionData.FactionId}");
+                    Respond($"    Prefab Name: {stationData.PrefabName}");
+                    Respond($"    Type: {stationData.Type}");
+                    Respond($"    Position: {stationData.Position}");
+                    Respond($"    Is Deep Space Station: {stationData.IsDeepSpaceStation}");
+                    Respond($"    Is On Planet With Atmosphere: {stationData.IsOnPlanetWithAtmosphere}");
+                    Respond($"    Station Entity ID: {stationData.StationEntityId}");
+                }
+            }
+        }
+
+        // Reflected getter for accessing stations
+        [ReflectedGetter(Name = "m_stations", Type = typeof(MyFaction))]
+        private static Func<MyFaction, Dictionary<long, MyStation>> _stations;
     }
 }
