@@ -3,6 +3,7 @@ using Shared.Plugin;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
+using Sandbox.Game.Multiplayer; // Required for faction management
 
 namespace TorchPlugin
 {
@@ -19,7 +20,7 @@ namespace TorchPlugin
         // TODO: Implement subcommands as needed
         private void RespondWithHelp()
         {
-            Respond("PluginTemplate commands:");
+            Respond("EventHandler commands:");
             Respond("  !cmd help");
             Respond("  !cmd info");
             Respond("    Prints the current configuration settings.");
@@ -75,7 +76,7 @@ namespace TorchPlugin
 
         // ReSharper disable once UnusedMember.Global
 
-        [Command("cmd help", "PluginTemplate: Help")]
+        [Command("cmd help", "EventHandler: Help")]
         [Permission(MyPromoteLevel.None)]
         public void Help()
         {
@@ -83,7 +84,7 @@ namespace TorchPlugin
         }
 
         // ReSharper disable once UnusedMember.Global
-        [Command("cmd info", "PluginTemplate: Prints the current settings")]
+        [Command("cmd info", "EventHandler: Prints the current settings")]
         [Permission(MyPromoteLevel.None)]
         public void Info()
         {
@@ -91,7 +92,7 @@ namespace TorchPlugin
         }
 
         // ReSharper disable once UnusedMember.Global
-        [Command("cmd enable", "PluginTemplate: Enables the plugin")]
+        [Command("cmd enable", "EventHandler: Enables the plugin")]
         [Permission(MyPromoteLevel.Admin)]
         public void Enable()
         {
@@ -100,7 +101,7 @@ namespace TorchPlugin
         }
 
         // ReSharper disable once UnusedMember.Global
-        [Command("cmd disable", "PluginTemplate: Disables the plugin")]
+        [Command("cmd disable", "EventHandler: Disables the plugin")]
         [Permission(MyPromoteLevel.Admin)]
         public void Disable()
         {
@@ -110,13 +111,70 @@ namespace TorchPlugin
 
         // TODO: Subcommand
         // ReSharper disable once UnusedMember.Global
-        [Command("cmd subcmd", "PluginTemplate: TODO: Subcommand")]
+        [Command("cmd subcmd", "EventHandler: TODO: Subcommand")]
         [Permission(MyPromoteLevel.Admin)]
         public void SubCmd(string name, string value)
         {
             // TODO: Process command parameters (for example name and value)
 
             RespondWithInfo();
+        }
+
+        // ReSharper disable once UnusedMember.Global
+        [Command("cmd factions", "EventHandler: Lists all factions in the game session with detailed information")]
+        [Permission(MyPromoteLevel.None)]
+        public void ListFactions()
+        {
+            if (Sandbox.Game.World.MySession.Static == null || Sandbox.Game.World.MySession.Static.Factions == null)
+            {
+                Respond("Factions data is not available. Ensure the game session is running.");
+                return;
+            }
+
+            var factions = Sandbox.Game.World.MySession.Static.Factions;
+            if (factions.Factions.Count == 0)
+            {
+                Respond("No factions found in the current game session.");
+                return;
+            }
+
+            Respond("Detailed information about factions in the current game session:");
+            foreach (var faction in factions.Factions)
+            {
+                var factionData = faction.Value;
+                Respond($"- Tag: {factionData.Tag}");
+                Respond($"  Name: {factionData.Name}");
+                Respond($"  Founder ID: {factionData.FounderId}");
+                Respond($"  Description: {factionData.Description}");
+                Respond($"  Score: {factionData.Score}");
+                Respond($"  Objective Completion: {factionData.ObjectivePercentageCompleted}%");
+                Respond($"  Members Count: {factionData.Members.Count}");
+                Respond($"  Accepts Humans: {factionData.AcceptHumans}");
+                Respond($"  Auto Accept Peace: {factionData.AutoAcceptPeace}");
+                Respond($"  Auto Accept Member: {factionData.AutoAcceptMember}");
+                Respond($"  Custom Color: {factionData.CustomColor}");
+                Respond($"  Icon Color: {factionData.IconColor}");
+                Respond($"  Private Info: {factionData.PrivateInfo}");
+                Respond($"  Faction Type: {factionData.FactionType}");
+                Respond($"  Balance: {factionData.GetBalanceShortString()}");
+
+                // Check if the faction has the last member
+                Respond($"  Has Last Member: {factionData.HasLastMember()}");
+
+                // Output members
+                Respond($"  Members:");
+                foreach (var member in factionData.Members)
+                {
+                    Respond($"    Member ID: {member.Key}, Member Info: {member.Value}");
+                }
+
+                // Output join requests
+                Respond($"  Join Requests:");
+                foreach (var joinRequest in factionData.JoinRequests)
+                {
+                    Respond($"    Request ID: {joinRequest.Key}, Request Info: {joinRequest.Value}");
+                }
+            }
         }
     }
 }

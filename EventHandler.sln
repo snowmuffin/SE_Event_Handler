@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientPlugin", "ClientPlugin\ClientPlugin.csproj", "{8ECD20AE-C73F-4F56-8A56-42B45D9C224C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TorchPlugin", "TorchPlugin\TorchPlugin.csproj", "{38702623-F886-4B6E-8327-024E0D167B97}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DedicatedPlugin", "DedicatedPlugin\DedicatedPlugin.csproj", "{074D802D-0B51-4D07-B9F3-BB6EEC80B3A6}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared", "Shared\Shared.shproj", "{12FE891C-A3A2-4915-953B-CAE52A623AEC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{75919FCB-E258-4690-ABD5-44597B3D9D65}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		README.md = README.md
+		setup.py = setup.py
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8ECD20AE-C73F-4F56-8A56-42B45D9C224C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8ECD20AE-C73F-4F56-8A56-42B45D9C224C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8ECD20AE-C73F-4F56-8A56-42B45D9C224C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{8ECD20AE-C73F-4F56-8A56-42B45D9C224C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8ECD20AE-C73F-4F56-8A56-42B45D9C224C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8ECD20AE-C73F-4F56-8A56-42B45D9C224C}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{38702623-F886-4B6E-8327-024E0D167B97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38702623-F886-4B6E-8327-024E0D167B97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38702623-F886-4B6E-8327-024E0D167B97}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{38702623-F886-4B6E-8327-024E0D167B97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38702623-F886-4B6E-8327-024E0D167B97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38702623-F886-4B6E-8327-024E0D167B97}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{074D802D-0B51-4D07-B9F3-BB6EEC80B3A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{074D802D-0B51-4D07-B9F3-BB6EEC80B3A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{074D802D-0B51-4D07-B9F3-BB6EEC80B3A6}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{074D802D-0B51-4D07-B9F3-BB6EEC80B3A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{074D802D-0B51-4D07-B9F3-BB6EEC80B3A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{074D802D-0B51-4D07-B9F3-BB6EEC80B3A6}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Shared\Shared.projitems*{074d802d-0b51-4d07-b9f3-bb6eec80b3a6}*SharedItemsImports = 4
+		Shared\Shared.projitems*{12fe891c-a3a2-4915-953b-cae52a623aec}*SharedItemsImports = 13
+		Shared\Shared.projitems*{38702623-f886-4b6e-8327-024e0d167b97}*SharedItemsImports = 4
+		Shared\Shared.projitems*{8ecd20ae-c73f-4f56-8a56-42b45d9c224c}*SharedItemsImports = 4
+	EndGlobalSection
+EndGlobal
