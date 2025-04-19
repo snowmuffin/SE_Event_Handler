@@ -1,9 +1,11 @@
+// Improved readability and structure for better understanding
+
 using Shared.Config;
 using Shared.Plugin;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
-using Sandbox.Game.Multiplayer;
+using Sandbox.Game.SessionComponents;
 using Torch.Utils;
 using System;
 using System.Collections.Generic;
@@ -11,7 +13,8 @@ using Sandbox.Game.World;
 using System.Linq;
 using Sandbox.Game.Entities;
 using VRageMath;
-using VRage.Game; // Required for faction management
+using VRage.Game;
+using System.Reflection;
 
 namespace TorchPlugin
 {
@@ -19,13 +22,8 @@ namespace TorchPlugin
     {
         private static IPluginConfig Config => Common.Config;
 
-        private void Respond(string message)
-        {
-            Context?.Respond(message);
-        }
+        private void Respond(string message) => Context?.Respond(message);
 
-        // TODO: Replace cmd with the name of your chat command
-        // TODO: Implement subcommands as needed
         private void RespondWithHelp()
         {
             Respond("EventHandler commands:");
@@ -44,62 +42,30 @@ namespace TorchPlugin
         {
             var config = Plugin.Instance.Config;
             Respond($"{Plugin.PluginName} plugin is enabled: {Format(config.Enabled)}");
-            // TODO: Respond with your plugin settings
-            // For example:
-            //Respond($"custom_setting: {Format(config.CustomSetting)}");
         }
 
-        // Custom formatters
-
         private static string Format(bool value) => value ? "Yes" : "No";
-
-        // Custom parsers
 
         private static bool TryParseBool(string text, out bool result)
         {
             switch (text.ToLower())
             {
-                case "1":
-                case "on":
-                case "yes":
-                case "y":
-                case "true":
-                case "t":
-                    result = true;
-                    return true;
-
-                case "0":
-                case "off":
-                case "no":
-                case "n":
-                case "false":
-                case "f":
-                    result = false;
-                    return true;
+                case "1": case "on": case "yes": case "y": case "true": case "t":
+                    result = true; return true;
+                case "0": case "off": case "no": case "n": case "false": case "f":
+                    result = false; return true;
             }
-
-            result = false;
-            return false;
+            result = false; return false;
         }
-
-        // ReSharper disable once UnusedMember.Global
 
         [Command("cmd help", "EventHandler: Help")]
         [Permission(MyPromoteLevel.None)]
-        public void Help()
-        {
-            RespondWithHelp();
-        }
+        public void Help() => RespondWithHelp();
 
-        // ReSharper disable once UnusedMember.Global
         [Command("cmd info", "EventHandler: Prints the current settings")]
         [Permission(MyPromoteLevel.None)]
-        public void Info()
-        {
-            RespondWithInfo();
-        }
+        public void Info() => RespondWithInfo();
 
-        // ReSharper disable once UnusedMember.Global
         [Command("cmd enable", "EventHandler: Enables the plugin")]
         [Permission(MyPromoteLevel.Admin)]
         public void Enable()
@@ -108,7 +74,6 @@ namespace TorchPlugin
             RespondWithInfo();
         }
 
-        // ReSharper disable once UnusedMember.Global
         [Command("cmd disable", "EventHandler: Disables the plugin")]
         [Permission(MyPromoteLevel.Admin)]
         public void Disable()
@@ -117,29 +82,24 @@ namespace TorchPlugin
             RespondWithInfo();
         }
 
-        // TODO: Subcommand
-        // ReSharper disable once UnusedMember.Global
         [Command("cmd subcmd", "EventHandler: TODO: Subcommand")]
         [Permission(MyPromoteLevel.Admin)]
         public void SubCmd(string name, string value)
         {
-            // TODO: Process command parameters (for example name and value)
-
             RespondWithInfo();
         }
 
-        // ReSharper disable once UnusedMember.Global
         [Command("cmd factions", "EventHandler: Lists all factions in the game session with detailed information")]
         [Permission(MyPromoteLevel.None)]
         public void ListFactions()
         {
-            if (Sandbox.Game.World.MySession.Static == null || Sandbox.Game.World.MySession.Static.Factions == null)
+            if (MySession.Static?.Factions == null)
             {
                 Respond("Factions data is not available. Ensure the game session is running.");
                 return;
             }
 
-            var factions = Sandbox.Game.World.MySession.Static.Factions;
+            var factions = MySession.Static.Factions;
             if (factions.Factions.Count == 0)
             {
                 Respond("No factions found in the current game session.");
@@ -162,21 +122,13 @@ namespace TorchPlugin
                 Respond($"  Auto Accept Member: {factionData.AutoAcceptMember}");
                 Respond($"  Custom Color: {factionData.CustomColor}");
                 Respond($"  Icon Color: {factionData.IconColor}");
-                Respond($"  Private Info: {factionData.PrivateInfo}");
                 Respond($"  Faction Type: {factionData.FactionType}");
-                Respond($"  Balance: {factionData.GetBalanceShortString()}");
-
-                // Check if the faction has the last member
-                Respond($"  Has Last Member: {factionData.HasLastMember()}");
-
-                // Output members
                 Respond($"  Members:");
                 foreach (var member in factionData.Members)
                 {
                     Respond($"    Member ID: {member.Key}, Member Info: {member.Value}");
                 }
 
-                // Output join requests
                 Respond($"  Join Requests:");
                 foreach (var joinRequest in factionData.JoinRequests)
                 {
@@ -185,25 +137,21 @@ namespace TorchPlugin
             }
         }
 
-        // ReSharper disable once UnusedMember.Global
         [Command("cmd stations", "EventHandler: Lists all stations in the game session with detailed information")]
         [Permission(MyPromoteLevel.None)]
         public void ListStations()
         {
-            if (Sandbox.Game.World.MySession.Static == null || Sandbox.Game.World.MySession.Static.Factions == null)
+            if (MySession.Static?.Factions == null)
             {
                 Respond("Stations data is not available. Ensure the game session is running.");
                 return;
             }
 
-            var factions = Sandbox.Game.World.MySession.Static.Factions.Factions;
-
+            var factions = MySession.Static.Factions.Factions;
             Respond("Detailed information about stations in the current game session:");
             foreach (var faction in factions)
             {
                 var factionData = faction.Value;
-
-                // Use the reflected getter to access the stations
                 var stations = _stations((MyFaction)factionData);
                 if (stations == null || stations.Count == 0)
                 {
@@ -222,115 +170,111 @@ namespace TorchPlugin
                     Respond($"    Position: {stationData.Position}");
                     Respond($"    Is Deep Space Station: {stationData.IsDeepSpaceStation}");
                     Respond($"    Is On Planet With Atmosphere: {stationData.IsOnPlanetWithAtmosphere}");
-                    Respond($"    Station Entity ID: {stationData.StationEntityId}");
                 }
             }
         }
 
-        // ReSharper disable once UnusedMember.Global
-        [Command("cmd deletestation", "EventHandler: Deletes all stations for a specific faction")]
+        [Command("cmd addspacestation", "EventHandler: Adds a new station to a specific faction")]
         [Permission(MyPromoteLevel.Admin)]
-        public void DeleteStations(string factionTag)
+        public void AddSpaceStation()
         {
-            if (Sandbox.Game.World.MySession.Static == null || Sandbox.Game.World.MySession.Static.Factions == null)
+            if (MySession.Static?.Factions == null)
             {
                 Respond("Stations data is not available. Ensure the game session is running.");
                 return;
             }
-
-            var factions = Sandbox.Game.World.MySession.Static.Factions.Factions;
-            var faction = factions.Values.FirstOrDefault(f => f.Tag.Equals(factionTag, StringComparison.OrdinalIgnoreCase));
-
-            if (faction == null)
+            var factions = MySession.Static.Factions.Factions;
+            if (factions.Count == 0)
             {
-                Respond($"Faction with tag '{factionTag}' not found.");
+                Respond("No factions found in the current game session.");
                 return;
             }
 
-            // Use the reflected getter to access the stations
-            var stations = _stations((MyFaction)faction);
-            if (stations == null || stations.Count == 0)
+            var random = new Random();
+            var validFactions = factions.Where(f => f.Value.FactionType == MyFactionTypes.Military ||
+                                                    f.Value.FactionType == MyFactionTypes.Builder ||
+                                                    f.Value.FactionType == MyFactionTypes.Trader ||
+                                                    f.Value.FactionType == MyFactionTypes.Miner).ToList();
+
+            if (!validFactions.Any())
             {
-                Respond($"Faction '{faction.Tag}' has no stations to delete.");
+                Respond("No valid factions found with the specified types.");
                 return;
             }
 
-            Respond($"Deleting all stations for faction '{faction.Tag}':");
-            foreach (var station in stations.Values.ToList())
+            var randomFaction = validFactions.ElementAt(random.Next(validFactions.Count)).Value;
+            var player = Context.Player;
+
+            var controlledEntity = player.Controller.ControlledEntity?.Entity;
+            if (controlledEntity == null)
             {
-                // Attempt to get the station entity and close it
-                if (MyEntities.TryGetEntityById(station.StationEntityId, out var entity))
-                {
-                    entity.Close();
-                    Respond($"  Deleted station entity with ID: {station.StationEntityId}");
-                }
-
-                // Remove the station from the economy system
-                Sandbox.Game.World.MySession.Static.GetComponent<Sandbox.Game.SessionComponents.MySessionComponentEconomy>()?.RemoveStationGrid(station.Id);
-                Respond($"  Removed station with ID: {station.Id}");
-            }
-
-            // Clear the stations from the faction
-            stations.Clear();
-            Respond($"All stations for faction '{faction.Tag}' have been deleted.");
-        }
-
-        // ReSharper disable once UnusedMember.Global
-        [Command("cmd addstation", "EventHandler: Adds a new station to a specific faction")]
-        [Permission(MyPromoteLevel.Admin)]
-        public void AddStation(string factionTag, string prefabName, string position)
-        {
-            if (Sandbox.Game.World.MySession.Static == null || Sandbox.Game.World.MySession.Static.Factions == null)
-            {
-                Respond("Stations data is not available. Ensure the game session is running.");
+                Respond("You are not controlling any entity.");
                 return;
             }
 
-            var factions = Sandbox.Game.World.MySession.Static.Factions.Factions;
-            var faction = factions.Values.FirstOrDefault(f => f.Tag.Equals(factionTag, StringComparison.OrdinalIgnoreCase));
+            var position = controlledEntity.GetPosition();
 
-            if (faction == null)
-            {
-                Respond($"Faction with tag '{factionTag}' not found.");
-                return;
-            }
+            var prefabNames = new[] { "Economy_SpaceStation_3", "Economy_SpaceStation_2", "Economy_SpaceStation_1" };
+            var randomPrefabName = prefabNames[random.Next(prefabNames.Length)];
 
-            // Log the received position for debugging
-            Respond($"Received position: {position}");
-
-            // Parse "X: Y: Z:" format into Vector3D
             try
             {
+                var stationPosition = position + new Vector3D(
+                    random.Next(400, 501),
+                    random.Next(400, 501),
+                    random.Next(400, 501)
+                );
 
-
-                var stationPosition = new Vector3D(-2070937.80260461,2715596.40970551,-3101761.2621626 );
-
-                // Validate the parsed position
                 if (stationPosition == Vector3D.Zero)
                 {
                     Respond("Position cannot be (0,0,0). Please provide a valid position.");
                     return;
                 }
 
-                // Create a new station
+                var upVector = new Vector3(0, 1, 0);
+                var forwardVector = new Vector3(0, 0, 1);
+                var isDeepSpace = false; 
+
                 var newStationId = VRage.MyEntityIdentifier.AllocateId();
                 var newStation = new MyStation(
                     newStationId,
                     stationPosition,
-                    MyStationTypeEnum.SpaceStation, // Use an existing type like SpaceStation
-                    (MyFaction)faction,
-                    prefabName,
-                    null
+                    MyStationTypeEnum.SpaceStation,
+                    (MyFaction)randomFaction,
+                    randomPrefabName,
+                    null,
+                    upVector,
+                    forwardVector,
+                    isDeepSpace
                 );
 
-                // Add the station to the faction
-                var stations = _stations((MyFaction)faction);
+                var stations = _stations((MyFaction)randomFaction);
                 stations[newStationId] = newStation;
-
-                Respond($"Added new station to faction '{faction.Tag}':");
+                var economyComponent = MySession.Static.GetComponent<MySessionComponentEconomy>();
+                if (economyComponent != null)
+                {
+                    var updateStationsMethod = typeof(MySessionComponentEconomy).GetMethod("UpdateStations", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (updateStationsMethod != null)
+                    {
+                        updateStationsMethod.Invoke(economyComponent, null);
+                        Respond("UpdateStations method invoked successfully.");
+                    }
+                    else
+                    {
+                        Respond("Failed to find the UpdateStations method.");
+                    }
+                }
+                else
+                {
+                    Respond("MySessionComponentEconomy component is not available.");
+                }
+                Respond($"Added new station to faction '{randomFaction.Tag}':");
                 Respond($"  Station ID: {newStationId}");
-                Respond($"  Prefab Name: {prefabName}");
+                Respond($"  Prefab Name: {randomPrefabName}");
                 Respond($"  Position: {stationPosition}");
+                Respond($"  Up Vector: {upVector}");
+                Respond($"  Forward Vector: {forwardVector}");
+                Respond($"  Is Deep Space Station: {isDeepSpace}");
             }
             catch (FormatException)
             {
@@ -338,7 +282,56 @@ namespace TorchPlugin
             }
         }
 
-        // Reflected getter for accessing stations
+        [Command("cmd prefabs", "EventHandler: Lists all prefabs in the game session")]
+        [Permission(MyPromoteLevel.None)]
+        public void ListPrefabs()
+        {
+            if (MySession.Static == null)
+            {
+                Respond("Game session is not running. Unable to retrieve prefabs.");
+                return;
+            }
+
+            var prefabs = Sandbox.Definitions.MyDefinitionManager.Static.GetPrefabDefinitions();
+            if (prefabs.Count == 0)
+            {
+                Respond("No prefabs found in the current game session.");
+                return;
+            }
+
+            Respond("List of prefabs in the current game session:");
+            foreach (var prefab in prefabs)
+            {
+                Respond($"- Prefab Name: {prefab.Value.Id.SubtypeName}");
+                Respond($"  Display Name: {prefab.Value.DisplayNameString}"); 
+                Respond($"  Cube Grids Count: {prefab.Value.CubeGrids?.Length ?? 0}");
+            }
+        }
+
+        [Command("cmd updatestations", "EventHandler: Invokes the UpdateStations method in MySessionComponentEconomy")] 
+        [Permission(MyPromoteLevel.Admin)]
+        public void UpdateStationsCommand()
+        {
+            var economyComponent = MySession.Static.GetComponent<MySessionComponentEconomy>();
+            if (economyComponent != null)
+            {
+                var updateStationsMethod = typeof(MySessionComponentEconomy).GetMethod("UpdateStations", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
+                if (updateStationsMethod != null)
+                {
+                    updateStationsMethod.Invoke(economyComponent, null);
+                    Respond("UpdateStations method invoked successfully.");
+                }
+                else
+                {
+                    Respond("Failed to find the UpdateStations method.");
+                }
+            }
+            else
+            {
+                Respond("MySessionComponentEconomy component is not available.");
+            }
+        }
+
         [ReflectedGetter(Name = "m_stations", Type = typeof(MyFaction))]
         private static Func<MyFaction, Dictionary<long, MyStation>> _stations;
     }
