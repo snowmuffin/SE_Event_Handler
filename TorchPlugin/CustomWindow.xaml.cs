@@ -102,6 +102,9 @@ namespace TorchPlugin
                             StationsGrid.ItemsSource = null;
                         }
                     }
+
+                    // Display reputation data
+                    DisplayFactionReputation(factionId);
                 }
             }
         }
@@ -139,6 +142,30 @@ namespace TorchPlugin
                     }
                 }
             }
+        }
+
+        private void DisplayFactionReputation(long factionId)
+        {
+            if (MySession.Static?.Players == null || MySession.Static?.Factions == null)
+            {
+                MessageBox.Show("Player or Faction data is not available. Ensure the game session is running.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var allPlayers = MySession.Static.Players.GetAllIdentities();
+            var reputationData = allPlayers.Select(player =>
+            {
+                var identityId = player.IdentityId;
+                var reputation = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(identityId, factionId);
+                return new
+                {
+                    PlayerId = identityId,
+                    PlayerName = player.DisplayName,
+                    Reputation = reputation
+                };
+            }).ToList();
+
+            ReputationGrid.ItemsSource = reputationData;
         }
     }
 }
