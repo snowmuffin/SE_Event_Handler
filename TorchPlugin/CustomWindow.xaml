@@ -1,8 +1,39 @@
 <Window x:Class="TorchPlugin.CustomWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Custom Window" Height="300" Width="400">
+        Title="Custom Window" Height="500" Width="1000">
     <Grid>
-        <TextBlock Text="This is a Custom Window!" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+        <TabControl>
+            <TabItem Header="Factions">
+                <Grid>
+                    <Button Content="Refresh" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="30" Click="RefreshButton_Click"/>
+                    <ListView Name="FactionsList" Margin="0,40,0,0">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Faction ID" DisplayMemberBinding="{Binding FactionId}" Width="100"/>
+                                <GridViewColumn Header="Tag" DisplayMemberBinding="{Binding Tag}" Width="100"/>
+                                <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150"/>
+                                <GridViewColumn Header="Founder ID" DisplayMemberBinding="{Binding FounderId}" Width="100"/>
+                                <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="200"/>
+                                <GridViewColumn Header="Score" DisplayMemberBinding="{Binding Score}" Width="80"/>
+                                <GridViewColumn Header="Objective Completion" DisplayMemberBinding="{Binding ObjectivePercentageCompleted}" Width="150"/>
+                                <GridViewColumn Header="Members Count" DisplayMemberBinding="{Binding MembersCount}" Width="100"/>
+                                <GridViewColumn Header="Accepts Humans" DisplayMemberBinding="{Binding AcceptHumans}" Width="100"/>
+                                <GridViewColumn Header="Auto Accept Peace" DisplayMemberBinding="{Binding AutoAcceptPeace}" Width="120"/>
+                                <GridViewColumn Header="Auto Accept Member" DisplayMemberBinding="{Binding AutoAcceptMember}" Width="120"/>
+                                <GridViewColumn Header="Custom Color" DisplayMemberBinding="{Binding CustomColor}" Width="100"/>
+                                <GridViewColumn Header="Icon Color" DisplayMemberBinding="{Binding IconColor}" Width="100"/>
+                                <GridViewColumn Header="Faction Type" DisplayMemberBinding="{Binding FactionType}" Width="100"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Details">
+                <ScrollViewer>
+                    <TextBlock Name="FactionDetails" Text="Select a faction to view details." TextWrapping="Wrap" Margin="10"/>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>
