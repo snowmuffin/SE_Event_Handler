@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using Shared.Plugin;
 using Sandbox.Game.World;
 using Torch.Utils;
+using Sandbox.Definitions;
 
 namespace TorchPlugin
 {
@@ -122,6 +123,7 @@ namespace TorchPlugin
                         StoreItemsGrid.ItemsSource = station.StoreItems.Select(item => new
                         {
                             ItemId = item.Id,
+                            ItemName = item.Item.HasValue ? item.Item.Value.SubtypeId.ToString() : "",
                             ItemType = item.ItemType,
                             PricePerUnit = item.PricePerUnit,
                             Amount = item.Amount,
