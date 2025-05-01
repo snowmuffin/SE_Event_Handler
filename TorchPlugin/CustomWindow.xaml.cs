@@ -88,14 +88,52 @@ namespace TorchPlugin
                                 station.Value.PrefabName,
                                 station.Value.Type,
                                 station.Value.Position,
+                                station.Value.Up,
+                                station.Value.Forward,
                                 station.Value.IsDeepSpaceStation,
-                                station.Value.IsOnPlanetWithAtmosphere
+                                station.Value.IsOnPlanetWithAtmosphere,
+                                station.Value.StationEntityId,
+                                SAFEZONE_SIZE = MyStation.SAFEZONE_SIZE
                             }).ToList();
                         }
                         else
                         {
                             StationsGrid.ItemsSource = null;
                         }
+                    }
+                }
+            }
+        }
+
+        private void StationsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var selectedStation = StationsGrid.SelectedItem;
+            if (selectedStation != null)
+            {
+                var stationId = (long)selectedStation.GetType().GetProperty("StationId")?.GetValue(selectedStation);
+                var factionId = (long)selectedStation.GetType().GetProperty("FactionId")?.GetValue(selectedStation);
+
+                var faction = MySession.Static.Factions.Factions.Values.FirstOrDefault(f => f.FactionId == factionId);
+                if (faction != null)
+                {
+                    var stations = _stations((MyFaction)faction);
+                    if (stations != null && stations.TryGetValue(stationId, out var station))
+                    {
+                        StoreItemsGrid.ItemsSource = station.StoreItems.Select(item => new
+                        {
+                            ItemId = item.Id,
+                            ItemType = item.ItemType,
+                            PricePerUnit = item.PricePerUnit,
+                            Amount = item.Amount,
+                            IsActive = item.IsActive,
+                            StoreItemType = item.StoreItemType,
+                            PrefabName = item.PrefabName,
+                            PrefabTotalPcu = item.PrefabTotalPcu,
+                            PricePerUnitDiscount = item.PricePerUnitDiscount,
+                            RemovedAmount = item.RemovedAmount,
+                            UpdateCount = item.UpdateCount,
+                            IsCustomStoreItem = item.IsCustomStoreItem
+                        }).ToList();
                     }
                 }
             }
