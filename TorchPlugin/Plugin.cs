@@ -48,6 +48,8 @@ namespace TorchPlugin
         // ReSharper disable once UnusedMember.Local
         private readonly Commands commands = new Commands();
 
+        private CustomInstance _customInstance;
+
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         public override void Init(ITorchBase torch)
         {
@@ -79,6 +81,13 @@ namespace TorchPlugin
 
             sessionManager = torch.Managers.GetManager<TorchSessionManager>();
             sessionManager.SessionStateChanged += SessionStateChanged;
+
+            // Initialize CustomInstance as a singleton
+            _customInstance = CustomInstance.GetInstance();
+            _customInstance.Start();
+
+            // Example communication
+            _customInstance.Communicate("Plugin initialized.");
 
             initialized = true;
         }
@@ -113,6 +122,10 @@ namespace TorchPlugin
 
                 sessionManager.SessionStateChanged -= SessionStateChanged;
                 sessionManager = null;
+
+                // Ensure CustomInstance is stopped during plugin disposal
+                _customInstance?.Stop();
+                _customInstance = null;
 
                 Log.Debug("Disposed");
             }

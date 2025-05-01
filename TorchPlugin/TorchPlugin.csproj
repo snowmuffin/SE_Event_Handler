@@ -616,6 +616,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigView.xaml.cs" />
+    <Compile Include="CustomInstance.cs" />
+    <Compile Include="CustomWindow.xaml.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -638,6 +640,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="ConfigView.xaml" />
+    <Page Include="CustomWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\Shared\Shared.projitems" Label="Shared" />
