@@ -7,9 +7,18 @@ using Shared.Plugin;
 using Sandbox.Game.World;
 using Torch.Utils;
 using Sandbox.Definitions;
+using VRage.Game.ModAPI;
+using System.Reflection;
+using VRage.Game;
 
 namespace TorchPlugin
 {
+    public class FactionReputation
+    {
+        public long PlayerId { get; set; }
+        public string PlayerName { get; set; }
+        public int Reputation { get; set; }
+    }
     /// <summary>
     /// Interaction logic for CustomWindow.xaml
     /// </summary>
@@ -34,6 +43,7 @@ namespace TorchPlugin
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
+            // Refresh Factions Data
             if (MySession.Static?.Factions == null)
             {
                 MessageBox.Show("Factions data is not available. Ensure the game session is running.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -59,6 +69,12 @@ namespace TorchPlugin
             }).ToList();
 
             FactionsList.ItemsSource = factions;
+
+            // Refresh Global Events Data
+            LoadGlobalEventFactoryData();
+
+            // Refresh MyGlobalEvents Data
+            LoadMyGlobalEventsData();
         }
 
         private void FactionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -144,6 +160,7 @@ namespace TorchPlugin
             }
         }
 
+        // Updated the data binding to use the FactionReputation model instead of an anonymous type.
         private void DisplayFactionReputation(long factionId)
         {
             if (MySession.Static?.Players == null || MySession.Static?.Factions == null)
@@ -157,15 +174,88 @@ namespace TorchPlugin
             {
                 var identityId = player.IdentityId;
                 var reputation = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(identityId, factionId);
-                return new
+                return new FactionReputation
                 {
                     PlayerId = identityId,
                     PlayerName = player.DisplayName,
-                    Reputation = reputation
+                    Reputation = reputation.Item2 // Extracting the reputation value
                 };
             }).ToList();
 
             ReputationGrid.ItemsSource = reputationData;
+        }
+
+        private void ReputationGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            if (e.Column.Header.ToString() == "Reputation")
+            {
+                var editedElement = e.EditingElement as TextBox;
+                if (editedElement != null && long.TryParse(editedElement.Text, out var newReputation))
+                {
+                    var selectedItem = e.Row.Item;
+                    var playerId = (long)selectedItem.GetType().GetProperty("PlayerId")?.GetValue(selectedItem);
+                    var factionId = (long)FactionsList.SelectedItem.GetType().GetProperty("FactionId")?.GetValue(FactionsList.SelectedItem);
+
+                    // Update the reputation in the game with 'None' as the reason
+                    MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(playerId, factionId, (int)newReputation, ReputationChangeReason.None);
+                }
+            }
+        }
+
+        private void LoadMyGlobalEventsData()
+        {
+            var globalEvents = typeof(MyGlobalEvents).GetField("m_globalEvents", BindingFlags.NonPublic | BindingFlags.Static)?.GetValue(null) as SortedSet<MyGlobalEventBase>;
+
+            if (globalEvents == null)
+            {
+                MessageBox.Show("Unable to retrieve data from MyGlobalEvents.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var eventData = globalEvents.Select(e => new
+            {
+                EventId = e.Definition.Id.ToString(),
+                EventName = e.Definition.DisplayNameString ?? e.Definition.Id.SubtypeName,
+                ActivationTime = e.ActivationTime,
+                IsEnabled = e.Enabled,
+                IsPeriodic = e.IsPeriodic
+            }).ToList();
+
+            MyGlobalEventsGrid.ItemsSource = eventData;
+        }
+
+        private void LoadGlobalEventFactoryData()
+        {
+            var eventFactoryType = typeof(MyGlobalEventFactory);
+
+            // Retrieve the private static fields using reflection
+            var typesToHandlersField = eventFactoryType.GetField("m_typesToHandlers", BindingFlags.NonPublic | BindingFlags.Static);
+            var globalEventFactoryField = eventFactoryType.GetField("m_globalEventFactory", BindingFlags.NonPublic | BindingFlags.Static);
+
+            if (typesToHandlersField == null || globalEventFactoryField == null)
+            {
+                MessageBox.Show("Unable to retrieve data from MyGlobalEventFactory.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Get the values of the fields
+            var typesToHandlers = typesToHandlersField.GetValue(null) as Dictionary<MyDefinitionId, MethodInfo>;
+            var globalEventFactory = globalEventFactoryField.GetValue(null);
+
+            if (typesToHandlers == null)
+            {
+                MessageBox.Show("No event handlers found.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // Prepare data for display
+            var eventData = typesToHandlers.Select(entry => new
+            {
+                EventDefinitionId = entry.Key.ToString(),
+                HandlerMethod = entry.Value.Name
+            }).ToList();
+
+            GlobalEventsGrid.ItemsSource = eventData;
         }
     }
 }
