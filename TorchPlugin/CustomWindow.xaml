@@ -18,53 +18,65 @@
         <TabControl Grid.Row="1" Grid.ColumnSpan="2" Margin="10">
             <!-- Existing Tabs -->
             <TabItem Header="Factions">
-                <StackPanel>
-                    <!-- Factions List Section -->
-                    <TextBlock Text="Factions List" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                    <Button Content="Refresh" Width="100" Height="30" Margin="0,0,0,10" Click="RefreshButton_Click"/>
-                    <ListView Name="FactionsList" Height="200" SelectionChanged="FactionsList_SelectionChanged">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Header="Faction ID" DisplayMemberBinding="{Binding FactionId}" Width="100"/>
-                                <GridViewColumn Header="Tag" DisplayMemberBinding="{Binding Tag}" Width="100"/>
-                                <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150"/>
-                                <GridViewColumn Header="Founder ID" DisplayMemberBinding="{Binding FounderId}" Width="100"/>
-                                <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="200"/>
-                                <GridViewColumn Header="Score" DisplayMemberBinding="{Binding Score}" Width="80"/>
-                                <GridViewColumn Header="Objective Completion" DisplayMemberBinding="{Binding ObjectivePercentageCompleted}" Width="150"/>
-                                <GridViewColumn Header="Members Count" DisplayMemberBinding="{Binding MembersCount}" Width="100"/>
-                                <GridViewColumn Header="Accepts Humans" DisplayMemberBinding="{Binding AcceptHumans}" Width="100"/>
-                                <GridViewColumn Header="Auto Accept Peace" DisplayMemberBinding="{Binding AutoAcceptPeace}" Width="120"/>
-                                <GridViewColumn Header="Auto Accept Member" DisplayMemberBinding="{Binding AutoAcceptMember}" Width="120"/>
-                                <GridViewColumn Header="Custom Color" DisplayMemberBinding="{Binding CustomColor}" Width="100"/>
-                                <GridViewColumn Header="Icon Color" DisplayMemberBinding="{Binding IconColor}" Width="100"/>
-                                <GridViewColumn Header="Faction Type" DisplayMemberBinding="{Binding FactionType}" Width="100"/>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-
-                    <TextBlock Text="Faction Members" FontSize="16" FontWeight="Bold" Margin="0,20,0,10"/>
-                    <DataGrid Name="MembersGrid" AutoGenerateColumns="True" Height="200"/>
-
-                    <!-- Stations and Store Items Section -->
-                    <TextBlock Text="Faction Stations" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                    <DataGrid Name="StationsGrid" AutoGenerateColumns="True" Height="200" SelectionChanged="StationsGrid_SelectionChanged"/>
-
-                    <TextBlock Text="Station Store Items" FontSize="16" FontWeight="Bold" Margin="0,20,0,10"/>
-                    <DataGrid Name="StoreItemsGrid" AutoGenerateColumns="True" Height="200"/>
-
-                    <!-- Reputation Section -->
-                    <TextBlock Text="Faction Reputation" FontSize="16" FontWeight="Bold" Margin="0,20,0,10"/>
-                    <DataGrid Name="ReputationGrid" AutoGenerateColumns="False" Height="200" CellEditEnding="ReputationGrid_CellEditEnding">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Player ID" Binding="{Binding PlayerId}" IsReadOnly="True" Width="*"/>
-                            <DataGridTextColumn Header="Player Name" Binding="{Binding PlayerName}" IsReadOnly="True" Width="*"/>
-                            <DataGridTextColumn Header="Reputation" Binding="{Binding Reputation, Mode=TwoWay}" Width="*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </StackPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+            
+                        <!-- Factions List Section -->
+                        <GroupBox Header="Factions List" Margin="0,0,0,20">
+                            <StackPanel>
+                                <Button Content="Refresh" Width="100" Height="30" Margin="0,0,0,10" Click="RefreshButton_Click"/>
+                                <ListView Name="FactionsList" Height="200" SelectionChanged="FactionsList_SelectionChanged">
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Header="Faction ID" DisplayMemberBinding="{Binding FactionId}" Width="100"/>
+                                            <GridViewColumn Header="Tag" DisplayMemberBinding="{Binding Tag}" Width="100"/>
+                                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150"/>
+                                            <GridViewColumn Header="Founder ID" DisplayMemberBinding="{Binding FounderId}" Width="100"/>
+                                            <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="200"/>
+                                            <GridViewColumn Header="Score" DisplayMemberBinding="{Binding Score}" Width="80"/>
+                                            <GridViewColumn Header="Objective Completion" DisplayMemberBinding="{Binding ObjectivePercentageCompleted}" Width="150"/>
+                                            <GridViewColumn Header="Members Count" DisplayMemberBinding="{Binding MembersCount}" Width="100"/>
+                                            <GridViewColumn Header="Accepts Humans" DisplayMemberBinding="{Binding AcceptHumans}" Width="100"/>
+                                            <GridViewColumn Header="Auto Accept Peace" DisplayMemberBinding="{Binding AutoAcceptPeace}" Width="120"/>
+                                            <GridViewColumn Header="Auto Accept Member" DisplayMemberBinding="{Binding AutoAcceptMember}" Width="120"/>
+                                            <GridViewColumn Header="Custom Color" DisplayMemberBinding="{Binding CustomColor}" Width="100"/>
+                                            <GridViewColumn Header="Icon Color" DisplayMemberBinding="{Binding IconColor}" Width="100"/>
+                                            <GridViewColumn Header="Faction Type" DisplayMemberBinding="{Binding FactionType}" Width="100"/>
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+                            </StackPanel>
+                        </GroupBox>
+            
+                        <!-- Members Section -->
+                        <GroupBox Header="Faction Members" Margin="0,0,0,20">
+                            <DataGrid Name="MembersGrid" AutoGenerateColumns="True" Height="200"/>
+                        </GroupBox>
+            
+                        <!-- Stations and Store Section -->
+                        <GroupBox Header="Faction Stations and Store Items" Margin="0,0,0,20">
+                            <StackPanel>
+                                <TextBlock Text="Stations" FontWeight="Bold" Margin="0,0,0,5"/>
+                                <DataGrid Name="StationsGrid" AutoGenerateColumns="True" Height="200" SelectionChanged="StationsGrid_SelectionChanged"/>
+                                <TextBlock Text="Store Items" FontWeight="Bold" Margin="10,10,0,5"/>
+                                <DataGrid Name="StoreItemsGrid" AutoGenerateColumns="True" Height="200"/>
+                            </StackPanel>
+                        </GroupBox>
+            
+                        <!-- Reputation Section -->
+                        <GroupBox Header="Faction Reputation">
+                            <DataGrid Name="ReputationGrid" AutoGenerateColumns="False" Height="200" CellEditEnding="ReputationGrid_CellEditEnding">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Player ID" Binding="{Binding PlayerId}" IsReadOnly="True" Width="*"/>
+                                    <DataGridTextColumn Header="Player Name" Binding="{Binding PlayerName}" IsReadOnly="True" Width="*"/>
+                                    <DataGridTextColumn Header="Reputation" Binding="{Binding Reputation, Mode=TwoWay}" Width="*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </GroupBox>
+            
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
-
             <!-- New Tab for Global Events -->
             <TabItem Header="Global Events">
                 <StackPanel>
