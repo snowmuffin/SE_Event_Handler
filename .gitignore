@@ -360,3 +360,4 @@ MigrationBackup/
 
 # JetBrains Rider project files
 /.idea/
+SpaceEngineers.Game.SessionComponents.MyGlobalEncountersGenerator.cs

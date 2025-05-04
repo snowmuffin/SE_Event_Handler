@@ -74,6 +74,14 @@
                     <DataGrid Name="MyGlobalEventsGrid" AutoGenerateColumns="True" Height="400"/>
                 </StackPanel>
             </TabItem>
+
+            <!-- New Tab for Global Encounters -->
+            <TabItem Header="Global Encounters">
+                <StackPanel>
+                    <TextBlock Text="Global Encounters" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <DataGrid Name="GlobalEncountersGrid" AutoGenerateColumns="True" Height="400"/>
+                </StackPanel>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

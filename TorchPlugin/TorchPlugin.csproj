@@ -102,6 +102,9 @@
       <HintPath>$(Torch)\DedicatedServer64\Sandbox.RenderDirect.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="SpaceEngineers.Game">
+      <HintPath>..\..\..\SteamLibrary\steamapps\common\SpaceEngineers\Bin64\SpaceEngineers.Game.dll</HintPath>
+    </Reference>
     <Reference Include="SteamKit2, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Torch)\SteamKit2.dll</HintPath>
       <Private>False</Private>

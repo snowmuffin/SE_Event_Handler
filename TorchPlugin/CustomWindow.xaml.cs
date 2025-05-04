@@ -10,7 +10,9 @@ using Sandbox.Definitions;
 using VRage.Game.ModAPI;
 using System.Reflection;
 using VRage.Game;
-
+using SpaceEngineers.Game.SessionComponents;
+using System.Collections.Concurrent;
+using SpaceEngineers.Game.EntityComponents.GameLogic;
 namespace TorchPlugin
 {
     public class FactionReputation
@@ -75,6 +77,7 @@ namespace TorchPlugin
 
             // Refresh MyGlobalEvents Data
             LoadMyGlobalEventsData();
+            LoadGlobalEncountersData();
         }
 
         private void FactionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -256,6 +259,55 @@ namespace TorchPlugin
             }).ToList();
 
             GlobalEventsGrid.ItemsSource = eventData;
+        }
+
+        private void LoadGlobalEncountersData()
+        {
+            var generatorInstance = MySession.Static.GetComponent<MyGlobalEncountersGenerator>();
+
+            if (generatorInstance == null)
+            {
+                MessageBox.Show("MyGlobalEncountersGenerator instance not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Use reflection to retrieve the m_spawnGroups field
+            var spawnGroupsField = typeof(MyGlobalEncountersGenerator).GetField("m_spawnGroups", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (spawnGroupsField == null)
+            {
+                MessageBox.Show("Unable to retrieve m_spawnGroups field.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var spawnGroups = spawnGroupsField.GetValue(generatorInstance) as MySpawnGroupDefinition[];
+
+            if (spawnGroups == null || spawnGroups.Length == 0)
+            {
+                MessageBox.Show("No spawn groups found.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // Prepare data for display with detailed columns
+            var spawnGroupData = spawnGroups.Select(group => new
+            {
+                GroupId = group.Id.ToString(),
+                GroupName = group.DisplayNameText,
+                Frequency = group.Frequency,
+                IsEncounter = group.IsEncounter,
+                IsGlobalEncounter = group.IsGlobalEncounter,
+                IsCargoShip = group.IsCargoShip,
+                EnableTradingStationVisit = group.EnableTradingStationVisit,
+                ReactorsOn = group.ReactorsOn,
+                EnableNpcResources = group.EnableNpcResources,
+                RandomizedPaint = group.RandomizedPaint,
+                MinFactionSubEncounters = group.MinFactionSubEncounters,
+                MaxFactionSubEncounters = group.MaxFactionSubEncounters,
+                MinHostileSubEncounters = group.MinHostileSubEncounters,
+                MaxHostileSubEncounters = group.MaxHostileSubEncounters
+            }).ToList();
+
+            GlobalEncountersGrid.ItemsSource = spawnGroupData;
         }
     }
 }
