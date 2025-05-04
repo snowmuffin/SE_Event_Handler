@@ -15,6 +15,7 @@ using Sandbox.Game.Entities;
 using VRageMath;
 using VRage.Game;
 using System.Reflection;
+using Sandbox.ModAPI;
 
 namespace TorchPlugin
 {
@@ -24,19 +25,7 @@ namespace TorchPlugin
 
         private void Respond(string message) => Context?.Respond(message);
 
-        private void RespondWithHelp()
-        {
-            Respond("EventHandler commands:");
-            Respond("  !cmd help");
-            Respond("  !cmd info");
-            Respond("    Prints the current configuration settings.");
-            Respond("  !cmd enable");
-            Respond("    Enables the plugin");
-            Respond("  !cmd disable");
-            Respond("    Disables the plugin");
-            Respond("  !cmd subcmd <name> <value>");
-            Respond("    TODO Your subcommand");
-        }
+ 
 
         private void RespondWithInfo()
         {
@@ -58,13 +47,6 @@ namespace TorchPlugin
             result = false; return false;
         }
 
-        [Command("cmd help", "EventHandler: Help")]
-        [Permission(MyPromoteLevel.None)]
-        public void Help() => RespondWithHelp();
-
-        [Command("cmd info", "EventHandler: Prints the current settings")]
-        [Permission(MyPromoteLevel.None)]
-        public void Info() => RespondWithInfo();
 
         [Command("cmd enable", "EventHandler: Enables the plugin")]
         [Permission(MyPromoteLevel.Admin)]
@@ -90,7 +72,7 @@ namespace TorchPlugin
         }
 
         [Command("cmd factions", "EventHandler: Lists all factions in the game session with detailed information")]
-        [Permission(MyPromoteLevel.None)]
+        [Permission(MyPromoteLevel.Admin)]
         public void ListFactions()
         {
             if (MySession.Static?.Factions == null)
@@ -138,7 +120,7 @@ namespace TorchPlugin
         }
 
         [Command("cmd stations", "EventHandler: Lists all stations in the game session with detailed information")]
-        [Permission(MyPromoteLevel.None)]
+        [Permission(MyPromoteLevel.Admin)]
         public void ListStations()
         {
             if (MySession.Static?.Factions == null)
@@ -173,7 +155,31 @@ namespace TorchPlugin
                 }
             }
         }
+        [Command("cmd stations gps", "Lists current stations in gps")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void ViewSafeZone()
+        {
 
+            if (Context.Player == null || Context.Player.SteamUserId == 0)
+            {
+                Context.Respond("command cannot be use in this method.");
+                return;
+            }
+            var factions = MySession.Static.Factions.Factions;
+            foreach (var faction in factions)
+            {
+                var factionData = faction.Value;
+                var stations = _stations((MyFaction)factionData);
+                foreach (var station in stations)
+                {
+                    var stationData = station.Value;
+                    var gps = MyAPIGateway.Session?.GPS.Create(($"[Station]{factionData.Name} "), ($"{station.Key} "), stationData.Position, true);
+                    MyAPIGateway.Session?.GPS.AddGps(Context.Player.IdentityId, gps);
+                }
+            }
+
+
+        }
         [Command("cmd addspacestation", "EventHandler: Adds a new station to a specific faction")]
         [Permission(MyPromoteLevel.Admin)]
         public void AddSpaceStation()
@@ -283,7 +289,7 @@ namespace TorchPlugin
         }
 
         [Command("cmd prefabs", "EventHandler: Lists all prefabs in the game session")]
-        [Permission(MyPromoteLevel.None)]
+        [Permission(MyPromoteLevel.Admin)]
         public void ListPrefabs()
         {
             if (MySession.Static == null)
@@ -329,6 +335,55 @@ namespace TorchPlugin
             else
             {
                 Respond("MySessionComponentEconomy component is not available.");
+            }
+        }
+
+        [Command("cmd neareststation gps", "Lists the nearest station to the player's position in gps")]
+        [Permission(MyPromoteLevel.None)]
+        public void NearestStationGps()
+        {
+            if (Context.Player == null || Context.Player.SteamUserId == 0)
+            {
+                Context.Respond("Command cannot be used in this method.");
+                return;
+            }
+
+            var playerPosition = Context.Player.GetPosition();
+            var factions = MySession.Static.Factions.Factions;
+
+            MyStation nearestStation = null;
+            double nearestDistance = double.MaxValue;
+
+            foreach (var faction in factions)
+            {
+                var factionData = faction.Value;
+                var stations = _stations((MyFaction)factionData);
+                foreach (var station in stations)
+                {
+                    var stationData = station.Value;
+                    var distance = Vector3D.Distance(playerPosition, stationData.Position);
+                    if (distance < nearestDistance)
+                    {
+                        nearestDistance = distance;
+                        nearestStation = stationData;
+                    }
+                }
+            }
+
+            if (nearestStation != null)
+            {
+                var gps = MyAPIGateway.Session?.GPS.Create(
+                    ($"[Station] {nearestStation.PrefabName}"),
+                    ($"Station ID: {nearestStation.Id}"),
+                    nearestStation.Position,
+                    true
+                );
+                MyAPIGateway.Session?.GPS.AddGps(Context.Player.IdentityId, gps);
+                Context.Respond($"Nearest station added to GPS: {nearestStation.PrefabName} at {nearestStation.Position}");
+            }
+            else
+            {
+                Context.Respond("No stations found in the current game session.");
             }
         }
 
