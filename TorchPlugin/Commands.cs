@@ -157,28 +157,38 @@ namespace TorchPlugin
         }
         [Command("cmd stations gps", "Lists current stations in gps")]
         [Permission(MyPromoteLevel.Admin)]
-        public void ViewSafeZone()
+        public void ViewStations(string factionTag = null)
         {
-
             if (Context.Player == null || Context.Player.SteamUserId == 0)
             {
-                Context.Respond("command cannot be use in this method.");
+                Context.Respond("Command cannot be used in this method.");
                 return;
             }
+
             var factions = MySession.Static.Factions.Factions;
             foreach (var faction in factions)
             {
                 var factionData = faction.Value;
+
+                // If a faction tag is provided, skip factions that don't match
+                if (!string.IsNullOrEmpty(factionTag) && !factionData.Tag.Equals(factionTag, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 var stations = _stations((MyFaction)factionData);
                 foreach (var station in stations)
                 {
                     var stationData = station.Value;
-                    var gps = MyAPIGateway.Session?.GPS.Create(($"[Station]{factionData.Name} "), ($"{station.Key} "), stationData.Position, true);
+                    var gps = MyAPIGateway.Session?.GPS.Create(
+                        ($"[Station]{factionData.Name} "),
+                        ($"{station.Key} "),
+                        stationData.Position,
+                        true
+                    );
                     MyAPIGateway.Session?.GPS.AddGps(Context.Player.IdentityId, gps);
                 }
             }
-
-
         }
         [Command("cmd addspacestation", "EventHandler: Adds a new station to a specific faction")]
         [Permission(MyPromoteLevel.Admin)]
