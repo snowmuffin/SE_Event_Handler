@@ -288,6 +288,58 @@ namespace TorchPlugin
             }
         }
 
+        [Command("cmd removespacestation", "EventHandler: Removes a station from a specific faction")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void RemoveSpaceStation(long stationId)
+        {
+            if (MySession.Static?.Factions == null)
+            {
+                Respond("Stations data is not available. Ensure the game session is running.");
+                return;
+            }
+
+            var factions = MySession.Static.Factions.Factions;
+            if (factions.Count == 0)
+            {
+                Respond("No factions found in the current game session.");
+                return;
+            }
+
+            foreach (var faction in factions)
+            {
+                var factionData = faction.Value;
+                var stations = _stations((MyFaction)factionData);
+                if (stations != null && stations.ContainsKey(stationId))
+                {
+                    stations.Remove(stationId);
+
+                    var economyComponent = MySession.Static.GetComponent<MySessionComponentEconomy>();
+                    if (economyComponent != null)
+                    {
+                        var updateStationsMethod = typeof(MySessionComponentEconomy).GetMethod("UpdateStations", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (updateStationsMethod != null)
+                        {
+                            updateStationsMethod.Invoke(economyComponent, null);
+                            Respond("Station removed successfully and UpdateStations method invoked.");
+                        }
+                        else
+                        {
+                            Respond("Failed to find the UpdateStations method.");
+                        }
+                    }
+                    else
+                    {
+                        Respond("MySessionComponentEconomy component is not available.");
+                    }
+
+                    Respond($"Removed station with ID: {stationId} from faction '{factionData.Tag}'.");
+                    return;
+                }
+            }
+
+            Respond($"No station found with ID: {stationId}.");
+        }
+
         [Command("cmd prefabs", "EventHandler: Lists all prefabs in the game session")]
         [Permission(MyPromoteLevel.Admin)]
         public void ListPrefabs()
