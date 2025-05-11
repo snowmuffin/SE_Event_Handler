@@ -31,6 +31,9 @@ namespace TorchPlugin
         [ReflectedGetter(Name = "m_stations", Type = typeof(MyFaction))]
         private static Func<MyFaction, Dictionary<long, MyStation>> _stations;
 
+        public MyPlayer SelectedPlayer { get; set; }
+        public MySpawnGroupDefinition SelectedSpawnGroup { get; set; }
+
         public CustomWindow(CustomInstance customInstance)
         {
             _customInstance = customInstance;
@@ -97,9 +100,7 @@ namespace TorchPlugin
             PlayerDropdown.ItemsSource = players;
             PlayerDropdown.DisplayMemberPath = "DisplayName";
             PlayerDropdown.SelectedValuePath = "Player";
-
-
-
+            PlayerDropdown.SelectedValue = SelectedPlayer;
 
         }
 
@@ -375,6 +376,7 @@ namespace TorchPlugin
             SpawnGroupDropdown.ItemsSource = spawnGroupData;
             SpawnGroupDropdown.DisplayMemberPath = "GroupId";
             SpawnGroupDropdown.SelectedValuePath = "Group";
+            SpawnGroupDropdown.SelectedValue = SelectedSpawnGroup;
         }
 
         private void SpawnButton_Click(object sender, RoutedEventArgs e)

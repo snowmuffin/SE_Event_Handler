@@ -115,11 +115,11 @@
                         <TextBlock Text="Custom Spawn" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="Select Player:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox Name="PlayerDropdown" Width="200" DisplayMemberPath="DisplayName" SelectedValuePath="IdentityId"/>
+                            <ComboBox Name="PlayerDropdown" Width="200" DisplayMemberPath="DisplayName" SelectedValuePath="Player" SelectedValue="{Binding SelectedPlayer}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="Select Spawn Group:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox Name="SpawnGroupDropdown" Width="200" DisplayMemberPath="GroupId" SelectedValuePath="Id"/>
+                            <ComboBox Name="SpawnGroupDropdown" Width="200" DisplayMemberPath="GroupId" SelectedValuePath="Group" SelectedValue="{Binding SelectedSpawnGroup}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <Button Content="Spawn" Width="100" Click="SpawnButton_Click"/>
