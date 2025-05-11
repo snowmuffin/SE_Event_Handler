@@ -32,8 +32,9 @@ namespace TorchPlugin
 {
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 500, typeof(MyObjectBuilder_NeutralShipSpawner), null, true)]
     [StaticEventOwner]
-    public class MyNeutralShipSpawner : MySessionComponentBase
+    public class CustomShipSpawner : MySessionComponentBase
     {
+
 
         public static void CustomSpawn(object senderEvent, MySpawnGroupDefinition spawnGroup, MyPlayer selectedPlayer = null)
         {

@@ -90,39 +90,17 @@ namespace TorchPlugin
             var players = MySession.Static.Players.GetAllIdentities().Select(player => new
             {
                 DisplayName = player.DisplayName,
-                IdentityId = player.IdentityId
+                IdentityId = player.IdentityId,
+                Player= player
             }).ToList();
 
             PlayerDropdown.ItemsSource = players;
             PlayerDropdown.DisplayMemberPath = "DisplayName";
-            PlayerDropdown.SelectedValuePath = "IdentityId";
+            PlayerDropdown.SelectedValuePath = "Player";
 
-            // 스폰 그룹 목록 갱신
-            var spawnGroupsField = typeof(MyNeutralShipSpawner).GetField("m_spawnGroups", BindingFlags.NonPublic | BindingFlags.Static);
 
-            if (spawnGroupsField == null)
-            {
-                MessageBox.Show("Field 'm_spawnGroups' not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
 
-            var spawnGroups = spawnGroupsField.GetValue(null) as List<MySpawnGroupDefinition>;
 
-            if (spawnGroups == null || spawnGroups.Count == 0)
-            {
-                MessageBox.Show("No spawn groups found.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            var spawnGroupData = spawnGroups.Select(group => new
-            {
-                GroupId = group.Id.ToString(),
-                GroupName = group.DisplayNameText
-            }).ToList();
-
-            SpawnGroupDropdown.ItemsSource = spawnGroupData;
-            SpawnGroupDropdown.DisplayMemberPath = "GroupName";
-            SpawnGroupDropdown.SelectedValuePath = "GroupId";
         }
 
         private void FactionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -357,7 +335,7 @@ namespace TorchPlugin
 
         private void LoadNeutralShipSpawnerData()
         {
-            var spawnGroupsField = typeof(MyNeutralShipSpawner).GetField("m_spawnGroups", BindingFlags.NonPublic | BindingFlags.Static);
+            FieldInfo spawnGroupsField = typeof(MyNeutralShipSpawner).GetField("m_spawnGroups", BindingFlags.NonPublic | BindingFlags.Static);
 
             if (spawnGroupsField == null)
             {
@@ -365,7 +343,7 @@ namespace TorchPlugin
                 return;
             }
 
-            var spawnGroups = spawnGroupsField.GetValue(null) as List<MySpawnGroupDefinition>;
+            List<MySpawnGroupDefinition>  spawnGroups = spawnGroupsField?.GetValue(null) as List<MySpawnGroupDefinition>;
 
             if (spawnGroups == null || spawnGroups.Count == 0)
             {
@@ -388,13 +366,30 @@ namespace TorchPlugin
                 MinFactionSubEncounters = group.MinFactionSubEncounters,
                 MaxFactionSubEncounters = group.MaxFactionSubEncounters,
                 MinHostileSubEncounters = group.MinHostileSubEncounters,
-                MaxHostileSubEncounters = group.MaxHostileSubEncounters
+                MaxHostileSubEncounters = group.MaxHostileSubEncounters,
+                Group = group
             }).ToList();
 
             SpawnGroupGrid.ItemsSource = spawnGroupData;
 
+            SpawnGroupDropdown.ItemsSource = spawnGroupData;
+            SpawnGroupDropdown.DisplayMemberPath = "GroupId";
+            SpawnGroupDropdown.SelectedValuePath = "Group";
         }
 
+        private void SpawnButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedPlayer = PlayerDropdown.SelectedValue as MyPlayer;
+            var selectedGroup = SpawnGroupDropdown.SelectedValue as MySpawnGroupDefinition;
 
+            if (selectedPlayer == null || selectedGroup == null)
+            {
+                MessageBox.Show("Please select both a player and a spawn group.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            CustomShipSpawner.CustomSpawn(null, selectedGroup, selectedPlayer);
+            MessageBox.Show("Custom spawn executed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
     }
 }
