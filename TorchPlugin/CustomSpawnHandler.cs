@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using Sandbox;
 using Sandbox.Definitions;
@@ -31,44 +32,34 @@ namespace TorchPlugin
 {
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, 500, typeof(MyObjectBuilder_NeutralShipSpawner), null, true)]
     [StaticEventOwner]
-    // MyNeutralShipSpawner 클래스는 중립 선박의 스폰 및 관리 로직을 담당합니다.
     public class MyNeutralShipSpawner : MySessionComponentBase
     {
-        // CustomSpawn 메서드는 특정 스폰 그룹을 기반으로 스폰 이벤트를 처리합니다.
-        // 플레이어를 인수로 받아 스폰 위치를 선택하도록 개선합니다.
+
         public static void CustomSpawn(object senderEvent, MySpawnGroupDefinition spawnGroup, MyPlayer selectedPlayer = null)
         {
-            // 스폰 그룹의 프리팹 데이터를 다시 로드합니다.
             spawnGroup.ReloadPrefabs();
 
-            // 스폰 옵션 초기화
             SpawningOptions spawningOptions = SpawningOptions.None;
 
-            // 소유자 ID를 가져오지 못하면 메서드를 종료합니다.
             if (!spawnGroup.TryGetOwnerId(out var ownerId))
             {
                 return;
             }
 
-            // 스테이션 방문 가능 여부를 설정합니다.
             bool visitStationIfPossible = !spawnGroup.IsPirate && spawnGroup.EnableTradingStationVisit;
 
-            // NPC 블록 제한을 확인하고 PCU가 부족하면 스폰을 중단합니다.
             if (!MySession.Static.NPCBlockLimits.HasRemainingPCU(spawnGroup.IsGlobalEncounter))
             {
                 MySandboxGame.Log.Log(MyLogSeverity.Info, "NPC PCUs exhausted. Cargo ship will not spawn.");
                 return;
             }
 
-            // 스폰 반경 및 초기 위치 설정
             double num = 8000.0;
             Vector3D vector3D = Vector3D.Zero;
 
-            // 월드 제한 여부 확인
             bool flag = MySession.IsWorldLimited();
             if (flag)
             {
-                // 월드의 안전 반경을 계산하여 스폰 반경을 조정합니다.
                 num = Math.Min(num, MySession.WorldSafeHalfExtent() - spawnGroup.SpawnRadius);
                 if (num < 0.0)
                 {
@@ -80,13 +71,21 @@ namespace TorchPlugin
             {
                 if (selectedPlayer != null && selectedPlayer.Character != null)
                 {
-                    // 선택된 플레이어의 위치를 사용합니다.
                     vector3D = selectedPlayer.GetPosition();
                     MyLog.Default.WriteLine($"SpawnCargoShip event uses selected player '{selectedPlayer.Identity?.DisplayName}'.");
                 }
                 else
                 {
-                    // 온라인 플레이어 중 랜덤으로 위치를 선택합니다.
+                    Type m_playersBufferType = typeof(MyNeutralShipSpawner);
+
+                    FieldInfo m_playersBufferfield = m_playersBufferType.GetField("m_playersBuffer", BindingFlags.NonPublic | BindingFlags.Static);
+                    if (m_playersBufferfield == null)
+                    {
+                        MyLog.Default.Error("m_playersBuffer field not found.");
+                        return;
+                    }
+
+                    List<MyPlayer> m_playersBuffer = m_playersBufferfield.GetValue(null) as List<MyPlayer>;
                     using (MyUtils.ReuseCollection(ref m_playersBuffer))
                     {
                         MySession.Static.Players.GetOnlineHumanPlayers(m_playersBuffer);
@@ -109,20 +108,29 @@ namespace TorchPlugin
                 }
             }
 
-            // 스폰 박스를 계산하고 안전한 위치를 찾습니다.
             double num3 = 2000.0;
             BoundingBoxD spawnBox;
+            Type spawnerType = typeof(MyNeutralShipSpawner);
+            MethodInfo method = spawnerType.GetMethod("GetSafeBoundingBoxForPlayers", BindingFlags.NonPublic | BindingFlags.Static);
             if (flag)
             {
                 spawnBox = new BoundingBoxD(vector3D - num, vector3D + num);
             }
             else
             {
-                GetSafeBoundingBoxForPlayers(vector3D, num, out spawnBox);
+
+                if (method == null)
+                {
+                    throw new Exception("GetSafeBoundingBoxForPlayers 메서드를 찾을 수 없습니다.");
+                }
+
+                object[] parameters = new object[] { vector3D, num, null };
+
+                method.Invoke(null, parameters);
+                spawnBox = (BoundingBoxD)parameters[2];
                 num3 += spawnBox.HalfExtents.Max() - 2000.0;
             }
 
-            // 스폰 위치를 테스트합니다.
             Vector3D? vector3D2 = null;
             for (int i = 0; i < 10; i++)
             {
@@ -133,10 +141,11 @@ namespace TorchPlugin
                 }
             }
 
-            // 유효한 위치를 찾지 못하면 이벤트를 재시도합니다.
             if (!vector3D2.HasValue)
             {
-                RetryEventWithMaxTry(senderEvent as MyGlobalEventBase);
+                Type retryEventType = typeof(MyNeutralShipSpawner);
+                MethodInfo retryEventMethod = retryEventType.GetMethod("RetryEventWithMaxTry", BindingFlags.NonPublic | BindingFlags.Static);
+                retryEventMethod.Invoke(null, new object[] { senderEvent as MyGlobalEventBase });
                 return;
             }
 
@@ -153,9 +162,11 @@ namespace TorchPlugin
             Vector3D vector3D3 = ((num5.HasValue && !(num5.Value < 10000.0)) ? ((Vector3D)(direction * (float)num5.Value)) : ((Vector3D)(direction * 10000f)));
             Vector3 up = Vector3.CalculatePerpendicularVector(direction);
             MatrixD matrix = MatrixD.CreateWorld(vector3D2.Value, direction, up);
-            m_raycastHits.Clear();
+            Type valueType = typeof(MyNeutralShipSpawner);
+            FieldInfo field = valueType.GetField("m_raycastHits", BindingFlags.NonPublic | BindingFlags.Static);
 
-            // 스폰 그룹의 각 프리팹에 대해 유효성을 검사하고 스폰을 시도합니다.
+            (field.GetValue(null) as List<MyPhysics.HitInfo>).Clear();
+
             foreach (MySpawnGroupDefinition.SpawnGroupPrefab prefab in spawnGroup.Prefabs)
             {
                 MyPrefabDefinition prefabDefinition = MyDefinitionManager.Static.GetPrefabDefinition(prefab.SubtypeId);
@@ -163,15 +174,20 @@ namespace TorchPlugin
                 Vector3D vector3D5 = vector3D4 + vector3D3;
                 float num6 = prefabDefinition?.BoundingSphere.Radius ?? 10f;
                 MyLog.Default.WriteLine("Cargo ship destination: " + MyGps.PositionToPasteAbleGpsFormat(vector3D5, prefab.SubtypeId));
-                if (!IsShipDestinationValid(vector3D4, vector3D5, (spawnGroup.SpawnRadius > num6) ? spawnGroup.SpawnRadius : num6))
+                Type IsShipDestinationValidType = typeof(MyNeutralShipSpawner);
+                MethodInfo IsShipDestinationValidmethod = IsShipDestinationValidType.GetMethod("IsShipDestinationValid", BindingFlags.NonPublic | BindingFlags.Static);
+
+				
+                if (!(bool)IsShipDestinationValidmethod.Invoke(null, new object[] { vector3D4, vector3D5, (spawnGroup.SpawnRadius > num6) ? spawnGroup.SpawnRadius : num6 }))
                 {
                     MyLog.Default.WriteLine("Attempted cargo ship destination is not valid.");
-                    RetryEventWithMaxTry(senderEvent as MyGlobalEventBase);
+                    Type retryEventType = typeof(MyNeutralShipSpawner);
+                    MethodInfo retryEventMethod = retryEventType.GetMethod("RetryEventWithMaxTry", BindingFlags.NonPublic | BindingFlags.Static);
+                    retryEventMethod.Invoke(null, new object[] { senderEvent as MyGlobalEventBase });
                     return;
                 }
             }
 
-            // 최종적으로 프리팹을 스폰합니다.
             foreach (MySpawnGroupDefinition.SpawnGroupPrefab shipPrefab in spawnGroup.Prefabs)
             {
                 Vector3D vector3D6 = Vector3D.Transform((Vector3D)shipPrefab.Position, matrix);
@@ -179,12 +195,31 @@ namespace TorchPlugin
                 Vector3 up2 = Vector3.CalculatePerpendicularVector(-direction);
                 List<MyCubeGrid> tmpGridList = new List<MyCubeGrid>();
                 Stack<Action> stack = new Stack<Action>();
+                Type methodType = typeof(MyNeutralShipSpawner);
+                MethodInfo InitCargoShipmethod = methodType.GetMethod("InitCargoShip", BindingFlags.NonPublic | BindingFlags.Static);
+
                 stack.Push(delegate
                 {
-                    InitCargoShip(shipDestination, direction, spawnBox, visitStationIfPossible, shipPrefab, tmpGridList);
+                    if (InitCargoShipmethod != null)
+                    {
+                        object[] parameters = new object[]
+                        {
+                            shipDestination,
+                            direction,
+                            spawnBox,
+                            visitStationIfPossible,
+                            shipPrefab,
+                            tmpGridList
+                        };
+
+                        InitCargoShipmethod.Invoke(null, parameters);
+                    }
+                    else
+                    {
+                        MyLog.Default.Error("InitCargoShip method not found.");
+                    }
                 });
 
-                // 스폰 옵션 설정
                 spawningOptions |= SpawningOptions.RotateFirstCockpitTowardsDirection | SpawningOptions.SpawnRandomCargo | SpawningOptions.DisableDampeners | SpawningOptions.SetAuthorship;
                 spawningOptions = (spawnGroup.RandomizedPaint ? (spawningOptions | SpawningOptions.RandomizeColor) : (spawningOptions | SpawningOptions.ReplaceColor));
                 if (spawnGroup.EnableNpcResources)
@@ -195,8 +230,16 @@ namespace TorchPlugin
                 MyLog.Default.WriteLine("SpawnCargoShip attempts spawning at position\n" + MyGps.PositionToPasteAbleGpsFormat(vector3D6, shipPrefab.SubtypeId));
                 MyPrefabManager.Static.SpawnPrefab(tmpGridList, shipPrefab.SubtypeId, vector3D6, direction, up2, shipPrefab.Speed * direction, default(Vector3), shipPrefab.BeaconText, null, spawningOptions, ownerId, updateSync: false, stack);
             }
+            Type m_eventSpawnTryType = typeof(MyNeutralShipSpawner);
 
-            // 스폰 시도 횟수를 초기화합니다.
+            FieldInfo m_eventSpawnTryfield = m_eventSpawnTryType.GetField("m_playersBuffer", BindingFlags.NonPublic | BindingFlags.Static);
+            if (m_eventSpawnTryfield == null)
+            {
+                MyLog.Default.Error("m_playersBuffer field not found.");
+                return;
+            }
+
+            int m_eventSpawnTry = (int)m_eventSpawnTryfield.GetValue(null);
             m_eventSpawnTry = 0;
         }
     }
