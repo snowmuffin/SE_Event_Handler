@@ -43,6 +43,7 @@ namespace TorchPlugin
             _customInstance?.Stop();
         }
 
+        // Refresh 버튼 클릭 시 플레이어와 스폰 그룹 목록을 갱신합니다.
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
             // Refresh Factions Data
@@ -74,10 +75,54 @@ namespace TorchPlugin
 
             // Refresh Global Events Data
             LoadGlobalEventFactoryData();
-
             // Refresh MyGlobalEvents Data
             LoadMyGlobalEventsData();
             LoadGlobalEncountersData();
+            LoadNeutralShipSpawnerData();
+
+            // 플레이어 목록 갱신
+            if (MySession.Static?.Players == null)
+            {
+                MessageBox.Show("Player data is not available. Ensure the game session is running.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var players = MySession.Static.Players.GetAllIdentities().Select(player => new
+            {
+                DisplayName = player.DisplayName,
+                IdentityId = player.IdentityId
+            }).ToList();
+
+            PlayerDropdown.ItemsSource = players;
+            PlayerDropdown.DisplayMemberPath = "DisplayName";
+            PlayerDropdown.SelectedValuePath = "IdentityId";
+
+            // 스폰 그룹 목록 갱신
+            var spawnGroupsField = typeof(MyNeutralShipSpawner).GetField("m_spawnGroups", BindingFlags.NonPublic | BindingFlags.Static);
+
+            if (spawnGroupsField == null)
+            {
+                MessageBox.Show("Field 'm_spawnGroups' not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var spawnGroups = spawnGroupsField.GetValue(null) as List<MySpawnGroupDefinition>;
+
+            if (spawnGroups == null || spawnGroups.Count == 0)
+            {
+                MessageBox.Show("No spawn groups found.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var spawnGroupData = spawnGroups.Select(group => new
+            {
+                GroupId = group.Id.ToString(),
+                GroupName = group.DisplayNameText
+            }).ToList();
+
+            SpawnGroupDropdown.ItemsSource = spawnGroupData;
+            SpawnGroupDropdown.DisplayMemberPath = "GroupName";
+            SpawnGroupDropdown.SelectedValuePath = "GroupId";
         }
 
         private void FactionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -309,5 +354,47 @@ namespace TorchPlugin
 
             GlobalEncountersGrid.ItemsSource = spawnGroupData;
         }
+
+        private void LoadNeutralShipSpawnerData()
+        {
+            var spawnGroupsField = typeof(MyNeutralShipSpawner).GetField("m_spawnGroups", BindingFlags.NonPublic | BindingFlags.Static);
+
+            if (spawnGroupsField == null)
+            {
+                MessageBox.Show("Field 'm_spawnGroups' not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var spawnGroups = spawnGroupsField.GetValue(null) as List<MySpawnGroupDefinition>;
+
+            if (spawnGroups == null || spawnGroups.Count == 0)
+            {
+                MessageBox.Show("No spawn groups found.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var spawnGroupData = spawnGroups.Select(group => new
+            {
+                GroupId = group.Id.ToString(),
+                GroupName = group.DisplayNameText,
+                Frequency = group.Frequency,
+                IsEncounter = group.IsEncounter,
+                IsGlobalEncounter = group.IsGlobalEncounter,
+                IsCargoShip = group.IsCargoShip,
+                EnableTradingStationVisit = group.EnableTradingStationVisit,
+                ReactorsOn = group.ReactorsOn,
+                EnableNpcResources = group.EnableNpcResources,
+                RandomizedPaint = group.RandomizedPaint,
+                MinFactionSubEncounters = group.MinFactionSubEncounters,
+                MaxFactionSubEncounters = group.MaxFactionSubEncounters,
+                MinHostileSubEncounters = group.MinHostileSubEncounters,
+                MaxHostileSubEncounters = group.MaxHostileSubEncounters
+            }).ToList();
+
+            SpawnGroupGrid.ItemsSource = spawnGroupData;
+
+        }
+
+
     }
 }

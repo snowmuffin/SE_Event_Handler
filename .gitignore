@@ -364,3 +364,6 @@ SpaceEngineers.Game.SessionComponents.MyGlobalEncountersGenerator.cs
 Sandbox.Game.World.MyNeutralShipSpawner.cs
 VRage.Game.MyObjectBuilder_SpawnGroupDefinition.cs
 VRage.Game.SubEncounter.cs
+Sandbox.Definitions.MySpawnGroupDefinition.cs
+Sandbox.Game.World.Generator.cs
+Sandbox.Game.World.Generator.MyEncounterGenerator.cs

@@ -620,6 +620,7 @@
   <ItemGroup>
     <Compile Include="ConfigView.xaml.cs" />
     <Compile Include="CustomInstance.cs" />
+    <Compile Include="CustomSpawnHandler.cs" />
     <Compile Include="CustomWindow.xaml.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="PluginConfig.cs" />
