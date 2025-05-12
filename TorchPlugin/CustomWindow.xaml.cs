@@ -94,13 +94,11 @@ namespace TorchPlugin
             {
                 DisplayName = player.DisplayName,
                 IdentityId = player.IdentityId,
-                Player= player
             }).ToList();
 
             PlayerDropdown.ItemsSource = players;
             PlayerDropdown.DisplayMemberPath = "DisplayName";
-            PlayerDropdown.SelectedValuePath = "Player";
-            PlayerDropdown.SelectedValue = SelectedPlayer;
+
 
         }
 
@@ -368,30 +366,21 @@ namespace TorchPlugin
                 MaxFactionSubEncounters = group.MaxFactionSubEncounters,
                 MinHostileSubEncounters = group.MinHostileSubEncounters,
                 MaxHostileSubEncounters = group.MaxHostileSubEncounters,
-                Group = group
             }).ToList();
 
             SpawnGroupGrid.ItemsSource = spawnGroupData;
 
             SpawnGroupDropdown.ItemsSource = spawnGroupData;
             SpawnGroupDropdown.DisplayMemberPath = "GroupId";
-            SpawnGroupDropdown.SelectedValuePath = "Group";
-            SpawnGroupDropdown.SelectedValue = SelectedSpawnGroup;
+
         }
 
         private void SpawnButton_Click(object sender, RoutedEventArgs e)
         {
-            var selectedPlayer = PlayerDropdown.SelectedValue as MyPlayer;
-            var selectedGroup = SpawnGroupDropdown.SelectedValue as MySpawnGroupDefinition;
 
-            if (selectedPlayer == null || selectedGroup == null)
-            {
-                MessageBox.Show("Please select both a player and a spawn group.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
 
-            CustomShipSpawner.CustomSpawn(null, selectedGroup, selectedPlayer);
-            MessageBox.Show("Custom spawn executed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+
         }
     }
 }
