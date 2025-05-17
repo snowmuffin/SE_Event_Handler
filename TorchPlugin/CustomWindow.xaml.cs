@@ -83,17 +83,18 @@ namespace TorchPlugin
             LoadGlobalEncountersData();
             LoadNeutralShipSpawnerData();
 
-            // 플레이어 목록 갱신
-            if (MySession.Static?.Players == null)
+            Type m_playersBufferType = typeof(MyNeutralShipSpawner);
+            FieldInfo m_playersBufferfield = m_playersBufferType.GetField("m_playersBuffer", BindingFlags.NonPublic | BindingFlags.Static);
+            if (m_playersBufferfield == null)
             {
-                MessageBox.Show("Player data is not available. Ensure the game session is running.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("m_playersBuffer field not found.");
                 return;
             }
-
-            var players = MySession.Static.Players.GetAllIdentities().Select(player => new
+            List<MyPlayer> m_playersBuffer = m_playersBufferfield.GetValue(null) as List<MyPlayer>;
+            var players = m_playersBuffer.Select(player => new
             {
-                DisplayName = player.DisplayName,
-                IdentityId = player.IdentityId,
+                player.DisplayName,
+                player.IsBot,
             }).ToList();
 
             PlayerDropdown.ItemsSource = players;
@@ -371,13 +372,22 @@ namespace TorchPlugin
             SpawnGroupGrid.ItemsSource = spawnGroupData;
 
             SpawnGroupDropdown.ItemsSource = spawnGroupData;
-            SpawnGroupDropdown.DisplayMemberPath = "GroupId";
+            SpawnGroupDropdown.DisplayMemberPath = "GroupName";
+            
 
         }
 
+
         private void SpawnButton_Click(object sender, RoutedEventArgs e)
         {
-
+            var selectedPlayer = PlayerDropdown.SelectedItem as MyPlayer;
+            var selectedGroup = SpawnGroupDropdown.SelectedItem as MySpawnGroupDefinition;
+            // Check if both selections are valid
+            if (selectedPlayer == null)
+            {
+                MessageBox.Show("Please select both a player and a spawn group.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
 
 

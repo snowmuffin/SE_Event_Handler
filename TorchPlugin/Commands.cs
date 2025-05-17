@@ -16,6 +16,7 @@ using VRageMath;
 using VRage.Game;
 using System.Reflection;
 using Sandbox.ModAPI;
+using VRage.ModAPI;
 
 namespace TorchPlugin
 {
@@ -446,6 +447,98 @@ namespace TorchPlugin
             else
             {
                 Context.Respond("No stations found in the current game session.");
+            }
+        }
+
+        [Command("cmd resetstationids", "EventHandler: Resets all station entity IDs to 0")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void ResetStationEntityIds()
+        {
+            if (MySession.Static?.Factions == null)
+            {
+                Respond("Stations data is not available. Ensure the game session is running.");
+                return;
+            }
+
+            var factions = MySession.Static.Factions.Factions;
+            Respond("Resetting StationEntityId to 0 for all stations in the current game session:");
+            foreach (var faction in factions)
+            {
+                var factionData = faction.Value;
+                Respond($"Processing faction: {factionData.Tag}");
+                var stations = _stations((MyFaction)factionData);
+                if (stations == null || stations.Count == 0)
+                {
+                    Respond($"Faction '{factionData.Tag}' has no stations.");
+                    continue;
+                }
+
+                var myEntitiesInstance = MyAPIGateway.Entities;
+                foreach (var station in stations)
+                {
+                    var stationData = station.Value;
+                    long stationId = stationData.StationEntityId;
+                    Respond($"  Processing station ID: {stationId}");
+
+                    IMyEntity prevstation = myEntitiesInstance.GetEntityById(stationId);
+                    if (prevstation != null)
+                    {
+                        Respond($"    Found entity for station ID: {stationId}, closing and deleting...");
+                        prevstation.Close();
+                        prevstation.Delete();
+                    }
+                    else
+                    {
+                        Respond($"    No entity found for station ID: {stationId}");
+                    }
+
+                    stationData.StationEntityId = 0;
+                    Respond($"  Station ID: {station.Key} - StationEntityId reset to 0");
+                }
+            }
+
+            var economyComponent = MySession.Static.GetComponent<MySessionComponentEconomy>();
+            if (economyComponent != null)
+            {
+                var updateStationsMethod = typeof(MySessionComponentEconomy).GetMethod("UpdateStations", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
+                if (updateStationsMethod != null)
+                {
+                    updateStationsMethod.Invoke(economyComponent, null);
+                    Respond("UpdateStations method invoked successfully.");
+                }
+                else
+                {
+                    Respond("Failed to find the UpdateStations method.");
+                }
+            }
+            else
+            {
+                Respond("MySessionComponentEconomy component is not available.");
+            }
+        }
+
+        [Command("cmd deleteentity", "EventHandler: Deletes an entity by its ID")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void DeleteEntityById(long entityId)
+        {
+            var myEntitiesInstance = MyAPIGateway.Entities;
+            if (myEntitiesInstance == null)
+            {
+                Respond("Entity system is not available. Ensure the game session is running.");
+                return;
+            }
+
+            IMyEntity entity = myEntitiesInstance.GetEntityById(entityId);
+            if (entity != null)
+            {
+                Respond($"Found entity with ID: {entityId}, closing and deleting...");
+                entity.Close();
+                entity.Delete();
+                Respond($"Entity with ID: {entityId} has been successfully deleted.");
+            }
+            else
+            {
+                Respond($"No entity found with ID: {entityId}.");
             }
         }
 

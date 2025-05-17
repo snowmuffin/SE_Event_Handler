@@ -367,3 +367,4 @@ VRage.Game.SubEncounter.cs
 Sandbox.Definitions.MySpawnGroupDefinition.cs
 Sandbox.Game.World.Generator.cs
 Sandbox.Game.World.Generator.MyEncounterGenerator.cs
+/reference
