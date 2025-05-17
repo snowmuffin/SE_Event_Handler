@@ -17,6 +17,7 @@ using VRage.Game;
 using System.Reflection;
 using Sandbox.ModAPI;
 using VRage.ModAPI;
+using VRage;
 
 namespace TorchPlugin
 {
@@ -450,7 +451,7 @@ namespace TorchPlugin
             }
         }
 
-        [Command("cmd resetstationids", "EventHandler: Resets all station entity IDs to 0")]
+        [Command("cmd fix station", "EventHandler: Resets all station entity IDs to 0")]
         [Permission(MyPromoteLevel.Admin)]
         public void ResetStationEntityIds()
         {
@@ -459,7 +460,7 @@ namespace TorchPlugin
                 Respond("Stations data is not available. Ensure the game session is running.");
                 return;
             }
-
+            var myEntitiesInstance = MyAPIGateway.Entities;
             var factions = MySession.Static.Factions.Factions;
             Respond("Resetting StationEntityId to 0 for all stations in the current game session:");
             foreach (var faction in factions)
@@ -469,31 +470,19 @@ namespace TorchPlugin
                 var stations = _stations((MyFaction)factionData);
                 if (stations == null || stations.Count == 0)
                 {
-                    Respond($"Faction '{factionData.Tag}' has no stations.");
                     continue;
                 }
-
-                var myEntitiesInstance = MyAPIGateway.Entities;
+                
                 foreach (var station in stations)
                 {
-                    var stationData = station.Value;
-                    long stationId = stationData.StationEntityId;
-                    Respond($"  Processing station ID: {stationId}");
-
-                    IMyEntity prevstation = myEntitiesInstance.GetEntityById(stationId);
-                    if (prevstation != null)
-                    {
-                        Respond($"    Found entity for station ID: {stationId}, closing and deleting...");
-                        prevstation.Close();
-                        prevstation.Delete();
-                    }
-                    else
-                    {
-                        Respond($"    No entity found for station ID: {stationId}");
-                    }
-
-                    stationData.StationEntityId = 0;
-                    Respond($"  Station ID: {station.Key} - StationEntityId reset to 0");
+                    var stationobjectbuilder = station.Value.GetObjectBuilder();//Station GetObjectBuilder();
+                    var station_safezone_entityid = stationobjectbuilder.SafeZoneEntityId;//Station SafeZone Entity Id;
+                    long stationEntitiyId = station.Value.StationEntityId;// Station EntityId;
+                    IMyEntity stationEntity = myEntitiesInstance.GetEntityById(stationEntitiyId);
+                    IMyEntity safezoneEntity = myEntitiesInstance.GetEntityById(station_safezone_entityid);
+                    stationEntity?.Close();
+                    safezoneEntity?.Close();
+                    station.Value.StationEntityId = 0;
                 }
             }
 
