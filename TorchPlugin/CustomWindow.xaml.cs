@@ -49,58 +49,84 @@ namespace TorchPlugin
         // Refresh 버튼 클릭 시 플레이어와 스폰 그룹 목록을 갱신합니다.
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            // Refresh Factions Data
-            if (MySession.Static?.Factions == null)
+            try
             {
-                MessageBox.Show("Factions data is not available. Ensure the game session is running.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                // Refresh Factions Data
+                if (MySession.Static?.Factions == null)
+                {
+                    MessageBox.Show("Factions data is not available. Ensure the game session is running.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Diagnostics.Debug.WriteLine("[DEBUG] MySession.Static.Factions is null");
+                    return;
+                }
+                System.Diagnostics.Debug.WriteLine("[DEBUG] Factions loaded: " + MySession.Static.Factions.Factions.Count);
+                var factionsRaw = MySession.Static.Factions.Factions.Values;
+                if (factionsRaw == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[DEBUG] Factions.Values is null");
+                    FactionsList.ItemsSource = null;
+                }
+                else
+                {
+                    var factions = factionsRaw.Select(f => new
+                    {
+                        f.FactionId,
+                        f.Tag,
+                        f.Name,
+                        f.FounderId,
+                        f.Description,
+                        f.Score,
+                        ObjectivePercentageCompleted = f.ObjectivePercentageCompleted,
+                        MembersCount = f.Members.Count,
+                        f.AcceptHumans,
+                        f.AutoAcceptPeace,
+                        f.AutoAcceptMember,
+                        f.CustomColor,
+                        f.IconColor,
+                        f.FactionType
+                    }).ToList();
+                    System.Diagnostics.Debug.WriteLine($"[DEBUG] FactionsList.ItemsSource set: {factions.Count}");
+                    FactionsList.ItemsSource = factions;
+                }
+
+                // Refresh Global Events Data
+                LoadGlobalEventFactoryData();
+                // Refresh MyGlobalEvents Data
+                LoadMyGlobalEventsData();
+                LoadGlobalEncountersData();
+                LoadNeutralShipSpawnerData();
+
+                Type m_playersBufferType = typeof(MyNeutralShipSpawner);
+                FieldInfo m_playersBufferfield = m_playersBufferType.GetField("m_playersBuffer", BindingFlags.NonPublic | BindingFlags.Static);
+                if (m_playersBufferfield == null)
+                {
+                    MessageBox.Show("m_playersBuffer field not found.");
+                    System.Diagnostics.Debug.WriteLine("[DEBUG] m_playersBuffer field not found");
+                    return;
+                }
+                List<MyPlayer> m_playersBuffer = m_playersBufferfield.GetValue(null) as List<MyPlayer>;
+                if (m_playersBuffer == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[DEBUG] m_playersBuffer is null");
+                    PlayerDropdown.ItemsSource = null;
+                }
+                else
+                {
+                    var players = m_playersBuffer.Select(player => new
+                    {
+                        player.DisplayName,
+                        player.IsBot,
+                    }).ToList();
+                    System.Diagnostics.Debug.WriteLine($"[DEBUG] PlayerDropdown.ItemsSource set: {players.Count}");
+                    PlayerDropdown.ItemsSource = players;
+                    PlayerDropdown.DisplayMemberPath = "DisplayName";
+                }
             }
-
-            var factions = MySession.Static.Factions.Factions.Values.Select(f => new
+            catch (Exception ex)
             {
-                f.FactionId,
-                f.Tag,
-                f.Name,
-                f.FounderId,
-                f.Description,
-                f.Score,
-                ObjectivePercentageCompleted = f.ObjectivePercentageCompleted,
-                MembersCount = f.Members.Count,
-                f.AcceptHumans,
-                f.AutoAcceptPeace,
-                f.AutoAcceptMember,
-                f.CustomColor,
-                f.IconColor,
-                f.FactionType
-            }).ToList();
-
-            FactionsList.ItemsSource = factions;
-
-            // Refresh Global Events Data
-            LoadGlobalEventFactoryData();
-            // Refresh MyGlobalEvents Data
-            LoadMyGlobalEventsData();
-            LoadGlobalEncountersData();
-            LoadNeutralShipSpawnerData();
-
-            Type m_playersBufferType = typeof(MyNeutralShipSpawner);
-            FieldInfo m_playersBufferfield = m_playersBufferType.GetField("m_playersBuffer", BindingFlags.NonPublic | BindingFlags.Static);
-            if (m_playersBufferfield == null)
-            {
-                MessageBox.Show("m_playersBuffer field not found.");
-                return;
+                System.Diagnostics.Debug.WriteLine($"[ERROR] Exception in RefreshButton_Click: {ex}");
+                MessageBox.Show($"Exception: {ex.Message}\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            List<MyPlayer> m_playersBuffer = m_playersBufferfield.GetValue(null) as List<MyPlayer>;
-            var players = m_playersBuffer.Select(player => new
-            {
-                player.DisplayName,
-                player.IsBot,
-            }).ToList();
-
-            PlayerDropdown.ItemsSource = players;
-            PlayerDropdown.DisplayMemberPath = "DisplayName";
-
-
+            LoadActiveEncountersData();
         }
 
         private void FactionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -377,6 +403,45 @@ namespace TorchPlugin
 
         }
 
+        private void LoadActiveEncountersData()
+        {
+            var generatorInstance = MySession.Static.GetComponent<MyGlobalEncountersGenerator>();
+            if (generatorInstance == null)
+            {
+                MessageBox.Show("MyGlobalEncountersGenerator instance not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            // m_encounterComponents: ConcurrentDictionary<long, HashSet<MyGlobalEncounterComponent>>
+            var encounterComponentsField = typeof(MyGlobalEncountersGenerator).GetField("m_encounterComponents", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (encounterComponentsField == null)
+            {
+                MessageBox.Show("Unable to retrieve m_encounterComponents field.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            var encounterComponents = encounterComponentsField.GetValue(generatorInstance) as ConcurrentDictionary<long, HashSet<MyGlobalEncounterComponent>>;
+            if (encounterComponents == null || encounterComponents.Count == 0)
+            {
+                GlobalEncountersGrid.ItemsSource = null;
+                return;
+            }
+            var encounterList = new List<object>();
+            foreach (var kv in encounterComponents)
+            {
+                long encounterId = kv.Key;
+                foreach (var comp in kv.Value)
+                {
+                    var entity = comp.Entity;
+                    encounterList.Add(new {
+                        EncounterId = encounterId,
+                        comp.SpawnGroupName,
+                        EntityId = entity?.EntityId ?? 0,
+                        EntityType = entity?.GetType().Name ?? "-",
+                        Position = entity is VRage.Game.Entity.MyEntity ent ? ent.PositionComp?.GetPosition().ToString() : "-"
+                    });
+                }
+            }
+            ActiveGlobalEncountersGrid.ItemsSource = encounterList;
+        }
 
         private void SpawnButton_Click(object sender, RoutedEventArgs e)
         {
@@ -391,6 +456,35 @@ namespace TorchPlugin
 
 
 
+        }
+
+        private void RemoveEncounterButton_Click(object sender, RoutedEventArgs e)
+        {
+            var generatorInstance = MySession.Static.GetComponent<MyGlobalEncountersGenerator>();
+
+            if (sender is Button btn && btn.Tag is long encounterId)
+            {
+                RemoveGlobalEncounter(encounterId);
+                LoadActiveEncountersData(); // Refresh the grid after removal
+            }
+        }
+
+        // Use reflection to call the private RemoveGlobalEncounter method in MyGlobalEncountersGenerator
+        private void RemoveGlobalEncounter(long encounterId)
+        {
+            var generatorInstance = MySession.Static.GetComponent<MyGlobalEncountersGenerator>();
+            if (generatorInstance == null)
+            {
+                MessageBox.Show("MyGlobalEncountersGenerator instance not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            var method = typeof(MyGlobalEncountersGenerator).GetMethod("RemoveGlobalEncounter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (method == null)
+            {
+                MessageBox.Show("RemoveGlobalEncounter method not found via reflection.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            method.Invoke(generatorInstance, new object[] { encounterId });
         }
     }
 }

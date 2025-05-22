@@ -90,9 +90,21 @@
             <TabItem Header="Global Events">
                 <StackPanel>
                     <TextBlock Text="Global Events" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                    <DataGrid Name="GlobalEventsGrid" AutoGenerateColumns="True" Height="400"/>
+                    <DataGrid Name="GlobalEventsGrid" AutoGenerateColumns="True" Height="88"/>
                     <TextBlock Text="MyGlobalEvents" FontSize="16" FontWeight="Bold" Margin="0,20,0,10"/>
-                    <DataGrid Name="MyGlobalEventsGrid" AutoGenerateColumns="True" Height="400"/>
+                    <DataGrid Name="MyGlobalEventsGrid" AutoGenerateColumns="True" Height="99"/>
+                    <TextBlock Text="ActiveGlobalEncounter" FontSize="16" FontWeight="Bold" Margin="0,20,0,10"/>
+                    <DataGrid Name="ActiveGlobalEncountersGrid" AutoGenerateColumns="True" Height="400">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Remove">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Remove" Click="RemoveEncounterButton_Click" Tag="{Binding EncounterId}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </StackPanel>
             </TabItem>
 
