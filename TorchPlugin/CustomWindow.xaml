@@ -78,6 +78,20 @@
                         <DataGrid Name="SpawnGroupGrid" AutoGenerateColumns="True" Height="400"/>
 
                     </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="Custom Spawn" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="Select Player:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ComboBox Name="PlayerDropdown" Width="200" DisplayMemberPath="DisplayName"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="Select Spawn Group:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ComboBox Name="SpawnGroupDropdown" Width="200" DisplayMemberPath="GroupId"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button Content="Spawn" Width="100" Click="SpawnButton_Click"/>
+                        </StackPanel>
+                    </StackPanel>
                 </ScrollViewer>
             </TabItem>
             <!-- New Tab for Global Encounters -->
@@ -102,25 +116,6 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- New Tab for Custom Spawn -->
-            <TabItem Header="Custom Spawn">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <TextBlock Text="Custom Spawn" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="Select Player:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox Name="PlayerDropdown" Width="200" DisplayMemberPath="DisplayName"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="Select Spawn Group:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox Name="SpawnGroupDropdown" Width="200" DisplayMemberPath="GroupId"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <Button Content="Spawn" Width="100" Click="SpawnButton_Click"/>
-                        </StackPanel>
-                    </StackPanel>
-                </ScrollViewer>
-            </TabItem>
             <TabItem Header="Global Events">
                 <StackPanel>
                     <TextBlock Text="Global Events" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
