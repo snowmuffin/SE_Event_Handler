@@ -26,26 +26,7 @@
                         <!-- Factions List Section -->
                         <GroupBox Header="Factions List" Margin="0,0,0,20">
                             <StackPanel>
-                                <ListView Name="FactionsList" Height="200" SelectionChanged="FactionsList_SelectionChanged">
-                                    <ListView.View>
-                                        <GridView>
-                                            <GridViewColumn Header="Faction ID" DisplayMemberBinding="{Binding FactionId}" Width="100"/>
-                                            <GridViewColumn Header="Tag" DisplayMemberBinding="{Binding Tag}" Width="100"/>
-                                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150"/>
-                                            <GridViewColumn Header="Founder ID" DisplayMemberBinding="{Binding FounderId}" Width="100"/>
-                                            <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Description}" Width="200"/>
-                                            <GridViewColumn Header="Score" DisplayMemberBinding="{Binding Score}" Width="80"/>
-                                            <GridViewColumn Header="Objective Completion" DisplayMemberBinding="{Binding ObjectivePercentageCompleted}" Width="150"/>
-                                            <GridViewColumn Header="Members Count" DisplayMemberBinding="{Binding MembersCount}" Width="100"/>
-                                            <GridViewColumn Header="Accepts Humans" DisplayMemberBinding="{Binding AcceptHumans}" Width="100"/>
-                                            <GridViewColumn Header="Auto Accept Peace" DisplayMemberBinding="{Binding AutoAcceptPeace}" Width="120"/>
-                                            <GridViewColumn Header="Auto Accept Member" DisplayMemberBinding="{Binding AutoAcceptMember}" Width="120"/>
-                                            <GridViewColumn Header="Custom Color" DisplayMemberBinding="{Binding CustomColor}" Width="100"/>
-                                            <GridViewColumn Header="Icon Color" DisplayMemberBinding="{Binding IconColor}" Width="100"/>
-                                            <GridViewColumn Header="Faction Type" DisplayMemberBinding="{Binding FactionType}" Width="100"/>
-                                        </GridView>
-                                    </ListView.View>
-                                </ListView>
+                                <DataGrid Name="FactionsList" Height="200" AutoGenerateColumns="True" SelectionChanged="FactionsList_SelectionChanged"/>
                             </StackPanel>
                         </GroupBox>
             
