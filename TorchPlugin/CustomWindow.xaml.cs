@@ -51,75 +51,12 @@ namespace TorchPlugin
         {
             try
             {
-                // Refresh Factions Data
-                if (MySession.Static?.Factions == null)
-                {
-                    MessageBox.Show("Factions data is not available. Ensure the game session is running.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    System.Diagnostics.Debug.WriteLine("[DEBUG] MySession.Static.Factions is null");
-                    return;
-                }
-                System.Diagnostics.Debug.WriteLine("[DEBUG] Factions loaded: " + MySession.Static.Factions.Factions.Count);
-                var factionsRaw = MySession.Static.Factions.Factions.Values;
-                if (factionsRaw == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("[DEBUG] Factions.Values is null");
-                    FactionsList.ItemsSource = null;
-                }
-                else
-                {
-                    var factions = factionsRaw.Select(f => new
-                    {
-                        f.FactionId,
-                        f.Tag,
-                        f.Name,
-                        f.FounderId,
-                        f.Description,
-                        f.Score,
-                        ObjectivePercentageCompleted = f.ObjectivePercentageCompleted,
-                        MembersCount = f.Members.Count,
-                        f.AcceptHumans,
-                        f.AutoAcceptPeace,
-                        f.AutoAcceptMember,
-                        f.CustomColor,
-                        f.IconColor,
-                        f.FactionType
-                    }).ToList();
-                    System.Diagnostics.Debug.WriteLine($"[DEBUG] FactionsList.ItemsSource set: {factions.Count}");
-                    FactionsList.ItemsSource = factions;
-                }
-
-                // Refresh Global Events Data
+                LoadFactionsData();
                 LoadGlobalEventFactoryData();
-                // Refresh MyGlobalEvents Data
                 LoadMyGlobalEventsData();
                 LoadGlobalEncountersData();
                 LoadNeutralShipSpawnerData();
-
-                Type m_playersBufferType = typeof(MyNeutralShipSpawner);
-                FieldInfo m_playersBufferfield = m_playersBufferType.GetField("m_playersBuffer", BindingFlags.NonPublic | BindingFlags.Static);
-                if (m_playersBufferfield == null)
-                {
-                    MessageBox.Show("m_playersBuffer field not found.");
-                    System.Diagnostics.Debug.WriteLine("[DEBUG] m_playersBuffer field not found");
-                    return;
-                }
-                List<MyPlayer> m_playersBuffer = m_playersBufferfield.GetValue(null) as List<MyPlayer>;
-                if (m_playersBuffer == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("[DEBUG] m_playersBuffer is null");
-                    PlayerDropdown.ItemsSource = null;
-                }
-                else
-                {
-                    var players = m_playersBuffer.Select(player => new
-                    {
-                        player.DisplayName,
-                        player.IsBot,
-                    }).ToList();
-                    System.Diagnostics.Debug.WriteLine($"[DEBUG] PlayerDropdown.ItemsSource set: {players.Count}");
-                    PlayerDropdown.ItemsSource = players;
-                    PlayerDropdown.DisplayMemberPath = "DisplayName";
-                }
+                LoadPlayerDropdownData();
             }
             catch (Exception ex)
             {
@@ -127,6 +64,76 @@ namespace TorchPlugin
                 MessageBox.Show($"Exception: {ex.Message}\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             LoadActiveEncountersData();
+        }
+
+        // Factions 데이터 로드 분리
+        private void LoadFactionsData()
+        {
+            if (MySession.Static?.Factions == null)
+            {
+                MessageBox.Show("Factions data is not available. Ensure the game session is running.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Diagnostics.Debug.WriteLine("[DEBUG] MySession.Static.Factions is null");
+                return;
+            }
+            System.Diagnostics.Debug.WriteLine("[DEBUG] Factions loaded: " + MySession.Static.Factions.Factions.Count);
+            var factionsRaw = MySession.Static.Factions.Factions.Values;
+            if (factionsRaw == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[DEBUG] Factions.Values is null");
+                FactionsList.ItemsSource = null;
+            }
+            else
+            {
+                var factions = factionsRaw.Select(f => new
+                {
+                    f.FactionId,
+                    f.Tag,
+                    f.Name,
+                    f.FounderId,
+                    f.Description,
+                    f.Score,
+                    ObjectivePercentageCompleted = f.ObjectivePercentageCompleted,
+                    MembersCount = f.Members.Count,
+                    f.AcceptHumans,
+                    f.AutoAcceptPeace,
+                    f.AutoAcceptMember,
+                    f.CustomColor,
+                    f.IconColor,
+                    f.FactionType
+                }).ToList();
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] FactionsList.ItemsSource set: {factions.Count}");
+                FactionsList.ItemsSource = factions;
+            }
+        }
+
+        // Player 목록 로드 분리
+        private void LoadPlayerDropdownData()
+        {
+            Type m_playersBufferType = typeof(MyNeutralShipSpawner);
+            FieldInfo m_playersBufferfield = m_playersBufferType.GetField("m_playersBuffer", BindingFlags.NonPublic | BindingFlags.Static);
+            if (m_playersBufferfield == null)
+            {
+                MessageBox.Show("m_playersBuffer field not found.");
+                System.Diagnostics.Debug.WriteLine("[DEBUG] m_playersBuffer field not found");
+                return;
+            }
+            List<MyPlayer> m_playersBuffer = m_playersBufferfield.GetValue(null) as List<MyPlayer>;
+            if (m_playersBuffer == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[DEBUG] m_playersBuffer is null");
+                PlayerDropdown.ItemsSource = null;
+            }
+            else
+            {
+                var players = m_playersBuffer.Select(player => new
+                {
+                    player.DisplayName,
+                    player.IsBot,
+                }).ToList();
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] PlayerDropdown.ItemsSource set: {players.Count}");
+                PlayerDropdown.ItemsSource = players;
+                PlayerDropdown.DisplayMemberPath = "DisplayName";
+            }
         }
 
         private void FactionsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
