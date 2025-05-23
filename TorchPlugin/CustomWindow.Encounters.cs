@@ -90,7 +90,7 @@ namespace TorchPlugin
             }
             method.Invoke(generatorInstance, new object[] { encounterId });
         }
-        private void LoadActiveEncountersData()
+        private void LoadActiveGlobalEncountersData()
         {
             var generatorInstance = MySession.Static.GetComponent<MyGlobalEncountersGenerator>();
             if (generatorInstance == null)
@@ -107,7 +107,6 @@ namespace TorchPlugin
             var encounterComponents = encounterComponentsField.GetValue(generatorInstance) as ConcurrentDictionary<long, HashSet<MyGlobalEncounterComponent>>;
             if (encounterComponents == null || encounterComponents.Count == 0)
             {
-                GlobalEncountersGrid.ItemsSource = null;
                 return;
             }
             var encounterList = new List<object>();

@@ -53,13 +53,14 @@ namespace TorchPlugin
                 LoadGlobalEncountersData();
                 LoadNeutralShipSpawnerData();
                 LoadPlayerDropdownData();
+                
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[ERROR] Exception in RefreshButton_Click: {ex}");
                 MessageBox.Show($"Exception: {ex.Message}\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            LoadActiveEncountersData();
+            LoadActiveGlobalEncountersData();
         }
     }
 }
