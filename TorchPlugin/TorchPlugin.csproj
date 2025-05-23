@@ -621,6 +621,10 @@
     <Compile Include="ConfigView.xaml.cs" />
     <Compile Include="CustomInstance.cs" />
     <Compile Include="CustomSpawnHandler.cs" />
+    <Compile Include="CustomWindow.CustomSpawn.cs" />
+    <Compile Include="CustomWindow.Encounters.cs" />
+    <Compile Include="CustomWindow.Factions.cs" />
+    <Compile Include="CustomWindow.GlobalEvents.cs" />
     <Compile Include="CustomWindow.xaml.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="PluginConfig.cs" />
