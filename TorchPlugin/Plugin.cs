@@ -146,63 +146,67 @@ namespace TorchPlugin
         }
         public void ResetStationEntityIds()
         {
-            if (MySession.Static?.Factions == null)
+            try
             {
-                Log.Info("Stations data is not available. Ensure the game session is running.");
-                return;
-            }
-            var myEntitiesInstance = MyAPIGateway.Entities;
-            var factions = MySession.Static.Factions.Factions;
-            Log.Info("Resetting StationEntityId to 0 for all stations in the current game session:");
-            foreach (var faction in factions)
-            {
-                var factionData = faction.Value;
-                Log.Info($"Processing faction: {factionData.Tag}");
-                var stations = _stations((MyFaction)factionData);
-                if (stations == null || stations.Count == 0)
+                if (MySession.Static?.Factions == null)
                 {
-                    continue;
+                    Log.Info("Stations data is not available. Ensure the game session is running.");
+                    return;
                 }
-                
-                foreach (var station in stations)
+                var myEntitiesInstance = MyAPIGateway.Entities;
+                var factions = MySession.Static.Factions.Factions;
+                Log.Info("Resetting StationEntityId to 0 for all stations in the current game session:");
+                foreach (var faction in factions)
                 {
-                    long stationEntitiyId = station.Value.StationEntityId;
-                    IMyEntity stationEntity = myEntitiesInstance.GetEntityById(stationEntitiyId);
-                    if(stationEntity != null)
+                    var factionData = faction.Value;
+                    Log.Info($"Processing faction: {factionData.Tag}");
+                    var stations = _stations((MyFaction)factionData);
+                    if (stations == null || stations.Count == 0)
                     {
-                        Log.Info($"Station entity with ID {stationEntitiyId} exist.");
                         continue;
+                    }
+                    foreach (var station in stations)
+                    {
+                        long stationEntitiyId = station.Value.StationEntityId;
+                        IMyEntity stationEntity = myEntitiesInstance.GetEntityById(stationEntitiyId);
+                        if(stationEntity != null)
+                        {
+                            Log.Info($"Station entity with ID {stationEntitiyId} exist.");
+                            continue;
+                        }
+                        else
+                        {
+                            var stationobjectbuilder = station.Value.GetObjectBuilder();
+                            var station_safezone_entityid = stationobjectbuilder.SafeZoneEntityId;
+                            IMyEntity safezoneEntity = myEntitiesInstance.GetEntityById(station_safezone_entityid);
+                            stationEntity?.Close();
+                            safezoneEntity?.Close();
+                            station.Value.StationEntityId = 0;
+                        }
+                    }
+                }
+                var economyComponent = MySession.Static.GetComponent<MySessionComponentEconomy>();
+                if (economyComponent != null)
+                {
+                    var updateStationsMethod = typeof(MySessionComponentEconomy).GetMethod("UpdateStations", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (updateStationsMethod != null)
+                    {
+                        updateStationsMethod.Invoke(economyComponent, null);
+                        Log.Info("UpdateStations method invoked successfully.");
                     }
                     else
                     {
-                        var stationobjectbuilder = station.Value.GetObjectBuilder();
-                        var station_safezone_entityid = stationobjectbuilder.SafeZoneEntityId;
-                        
-                        IMyEntity safezoneEntity = myEntitiesInstance.GetEntityById(station_safezone_entityid);
-                        stationEntity?.Close();
-                        safezoneEntity?.Close();
-                        station.Value.StationEntityId = 0;
+                        Log.Info("Failed to find the UpdateStations method.");
                     }
-                }
-            }
-
-            var economyComponent = MySession.Static.GetComponent<MySessionComponentEconomy>();
-            if (economyComponent != null)
-            {
-                var updateStationsMethod = typeof(MySessionComponentEconomy).GetMethod("UpdateStations", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
-                if (updateStationsMethod != null)
-                {
-                    updateStationsMethod.Invoke(economyComponent, null);
-                    Log.Info("UpdateStations method invoked successfully.");
                 }
                 else
                 {
-                    Log.Info("Failed to find the UpdateStations method.");
+                    Log.Info("MySessionComponentEconomy component is not available.");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                Log.Info("MySessionComponentEconomy component is not available.");
+                Log.Error($"Exception in ResetStationEntityIds: {ex}");
             }
         }
         [ReflectedGetter(Name = "m_stations", Type = typeof(MyFaction))]
