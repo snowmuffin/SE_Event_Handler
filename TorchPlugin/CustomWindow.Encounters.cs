@@ -69,7 +69,7 @@ namespace TorchPlugin
             if (sender is Button btn && btn.Tag is long encounterId)
             {
                 RemoveGlobalEncounter(encounterId);
-                LoadActiveEncountersData(); // Refresh the grid after removal
+                LoadActiveGlobalEncountersData(); // Refresh the grid after removal
             }
         }
 

@@ -93,7 +93,6 @@ namespace TorchPlugin
                 MessageBox.Show("Please select both a player and a spawn group.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            // ...스폰 로직 구현 필요...
         }
     }
 }

@@ -76,9 +76,6 @@
                     <StackPanel>
                         <TextBlock Text="Spawn Groups" FontSize="16" FontWeight="Bold" Margin="0,20,0,10"/>
                         <DataGrid Name="SpawnGroupGrid" AutoGenerateColumns="True" Height="400"/>
-
-                    </StackPanel>
-                    <StackPanel>
                         <TextBlock Text="Custom Spawn" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
                         <TextBlock Text="Select Player:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <ComboBox Name="PlayerDropdown" Width="200" DisplayMemberPath="DisplayName"/>
