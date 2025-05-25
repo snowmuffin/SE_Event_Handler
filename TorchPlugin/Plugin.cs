@@ -361,16 +361,21 @@ namespace TorchPlugin
                 // 활성화된 인카운터가 없으면 종료
                 if (EncGen == null || m_encounterComponents.Count == 0)
                     return;
-
-                // 활성화된 인카운터를 순회하며 GPS 업데이트 및 제거
-                foreach (var kv in m_encountersTimer)
+                if (MySession.Static.Settings.GlobalEncounterCap <= m_activeEncounters ||!MySession.Static.NPCBlockLimits.HasRemainingPCU(true))
                 {
-                    long encounterId = kv.Key;
-                    if (kv.Value <= 60)
+                    // 활성화된 인카운터를 순회하며 GPS 업데이트 및 제거
+                    foreach (var kv in m_encountersTimer)
                     {
-                        RemoveGlobalEncounter(encounterId);
+                        long encounterId = kv.Key;
+                        if (kv.Value <= 60)
+                        {
+                            RemoveGlobalEncounter(encounterId);
+                            return;
+                        }
                     }
+                    
                 }
+                return;
             }
             catch (Exception ex)
             {
