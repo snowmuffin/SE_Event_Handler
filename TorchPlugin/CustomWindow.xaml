@@ -93,6 +93,15 @@
                         <DataGrid Name="GlobalEncountersGrid" AutoGenerateColumns="True" Height="400"/>
                         <TextBlock Text="ActiveGlobalEncounter" FontSize="16" FontWeight="Bold" Margin="0,20,0,10"/>
                         <DataGrid Name="ActiveGlobalEncountersGrid" AutoGenerateColumns="True" Height="400">
+                            <DataGrid.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="EncounterId: {Binding Name}" FontWeight="Bold" Background="LightGray"/>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </DataGrid.GroupStyle>
                             <DataGrid.Columns>
                                 <DataGridTemplateColumn Header="Remove">
                                     <DataGridTemplateColumn.CellTemplate>
