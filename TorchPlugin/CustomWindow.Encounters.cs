@@ -96,13 +96,7 @@ namespace TorchPlugin
             }
             method.Invoke(generatorInstance, new object[] { encounterId });
         }
-        public CustomWindow()
-        {
-            InitializeComponent();
-            _activeEncounterViewSource = new CollectionViewSource { Source = _activeEncounterCollection };
-            _activeEncounterViewSource.GroupDescriptions.Add(new PropertyGroupDescription("EncounterId"));
-            ActiveGlobalEncountersGrid.ItemsSource = _activeEncounterViewSource.View;
-        }
+
         private void LoadActiveGlobalEncountersData()
         {
             var generatorInstance = MySession.Static.GetComponent<MyGlobalEncountersGenerator>();
@@ -145,6 +139,7 @@ namespace TorchPlugin
                     });
                 }
             }
+            ActiveGlobalEncountersGrid.ItemsSource = _activeEncounterCollection;
         }
         
     }
