@@ -330,7 +330,6 @@ namespace TorchPlugin
                 // 일정 틱마다 스테이션 엔티티 ID 리셋
                 if (Tick - _lastResetTick >= ResetIntervalTicks)
                 {
-                    GlobalEncounterCleanup();
                     ResetStationEntityIds();
                     _lastResetTick = Tick;
                 }
