@@ -8,6 +8,7 @@ using VRage.Game;
 using VRage.Game.ModAPI;
 using Sandbox.Definitions;
 using Torch.Utils;
+using System.ComponentModel;
 
 namespace TorchPlugin
 {
@@ -20,7 +21,7 @@ namespace TorchPlugin
     /// <summary>
     /// Interaction logic for CustomWindow.xaml
     /// </summary>
-    public partial class CustomWindow : Window
+    public partial class CustomWindow : Window, INotifyPropertyChanged
     {
         private readonly CustomInstance _customInstance;
 
@@ -30,11 +31,27 @@ namespace TorchPlugin
         public MyPlayer SelectedPlayer { get; set; }
         public MySpawnGroupDefinition SelectedSpawnGroup { get; set; }
 
+        private int _globalEncounterCap;
+        public int globalEncounterCap
+        {
+            get => _globalEncounterCap;
+            set { _globalEncounterCap = value; OnPropertyChanged(nameof(globalEncounterCap)); }
+        }
+        private int _activeEncounters;
+        public int activeEncounters
+        {
+            get => _activeEncounters;
+            set { _activeEncounters = value; OnPropertyChanged(nameof(activeEncounters)); }
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
         public CustomWindow(CustomInstance customInstance)
         {
             _customInstance = customInstance;
             InitializeComponent();
             this.Closed += OnWindowClosed;
+            DataContext = this;
         }
 
         private void OnWindowClosed(object sender, EventArgs e)

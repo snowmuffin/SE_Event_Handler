@@ -67,7 +67,7 @@ namespace TorchPlugin
         public IPluginConfig Config => config?.Data; // 설정 데이터 접근 프로퍼티
         private PersistentConfig<PluginConfig> config; // 설정 파일 관리 객체
         private static readonly string ConfigFileName = $"{PluginName}.cfg"; // 설정 파일 이름
-	    private static readonly short ONE_MINUTE = 60; // 1분(초 단위)
+        private static readonly short ONE_MINUTE = 60; // 1분(초 단위)
 
         public UserControl GetControl() => control ?? (control = new ConfigView()); // WPF 설정창 반환
         private ConfigView control; // 설정창 컨트롤
@@ -125,7 +125,6 @@ namespace TorchPlugin
             _customInstance = CustomInstance.GetInstance();
             _customInstance.Start();
 
-            // 예시 커뮤니케이션
             _customInstance.Communicate("Plugin initialized.");
 
             initialized = true;
@@ -154,7 +153,6 @@ namespace TorchPlugin
             }
         }
 
-        // 플러그인 해제 및 리소스 정리
         public override void Dispose()
         {
             if (initialized)
@@ -249,73 +247,6 @@ namespace TorchPlugin
         [ReflectedGetter(Name = "m_stations", Type = typeof(MyFaction))]
         private static Func<MyFaction, Dictionary<long, MyStation>> _stations;
 
-        // 리플렉션을 통한 MyGlobalEncountersGenerator의 필드 접근자들
-        [ReflectedGetter(Name = "m_secondTimer", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, int> _secondTimer;
-
-        [ReflectedGetter(Name = "m_minuteTimer", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, int> _minuteTimer;
-
-        [ReflectedGetter(Name = "m_currentSpawnTimer", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, int> _currentSpawnTimer;
-
-        [ReflectedGetter(Name = "m_activeEncounters", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, int> _activeEncounters;
-
-        [ReflectedGetter(Name = "m_selectedSpawnGroup", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, string> _selectedSpawnGroup;
-
-        [ReflectedGetter(Name = "m_spawnGroups", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, MySpawnGroupDefinition[]> _spawnGroups;
-
-        [ReflectedGetter(Name = "m_spawnGroupTotalFrequencies", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, float> _spawnGroupTotalFrequencies;
-
-        [ReflectedGetter(Name = "m_spawnGroupCumulativeFrequencies", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, List<float>> _spawnGroupCumulativeFrequencies;
-
-        [ReflectedGetter(Name = "m_encounterComponents", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, ConcurrentDictionary<long, HashSet<MyGlobalEncounterComponent>>> _encounterComponentsDict;
-
-        [ReflectedGetter(Name = "m_encountersGps", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, ConcurrentDictionary<long, long>> _encountersGps;
-
-        [ReflectedGetter(Name = "m_encountersTimer", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, ConcurrentDictionary<long, int>> _encountersTimer;
-
-        [ReflectedGetter(Name = "m_spawnQueue", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, Queue<MyEncounterSpawnInfo>> _spawnQueue;
-
-        [ReflectedGetter(Name = "m_definition", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Func<MyGlobalEncountersGenerator, MyGlobalEncountersGeneratorDefinition> _definition;
-
-        // 리플렉션 Setter 추가
-        [ReflectedSetter(Name = "m_secondTimer", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Action<MyGlobalEncountersGenerator, int> _setSecondTimer;
-        [ReflectedSetter(Name = "m_minuteTimer", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Action<MyGlobalEncountersGenerator, int> _setMinuteTimer;
-        [ReflectedSetter(Name = "m_currentSpawnTimer", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Action<MyGlobalEncountersGenerator, int> _setCurrentSpawnTimer;
-        [ReflectedSetter(Name = "m_activeEncounters", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Action<MyGlobalEncountersGenerator, int> _setActiveEncounters;
-        [ReflectedSetter(Name = "m_selectedSpawnGroup", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Action<MyGlobalEncountersGenerator, string> _setSelectedSpawnGroup;
-
-        // 각 필드에 접근하는 프로퍼티들 (get/set)
-        private static MyGlobalEncountersGenerator EncGen => MySession.Static?.GetComponent<MyGlobalEncountersGenerator>();
-        private static int m_secondTimer { get => _secondTimer(EncGen); set => _setSecondTimer(EncGen, value); }
-        private static int m_minuteTimer { get => _minuteTimer(EncGen); set => _setMinuteTimer(EncGen, value); }
-        private static int m_currentSpawnTimer { get => _currentSpawnTimer(EncGen); set => _setCurrentSpawnTimer(EncGen, value); }
-        private static int m_activeEncounters { get => _activeEncounters(EncGen); set => _setActiveEncounters(EncGen, value); }
-        private static string m_selectedSpawnGroup { get => _selectedSpawnGroup(EncGen); set => _setSelectedSpawnGroup(EncGen, value); }
-        private static MySpawnGroupDefinition[] m_spawnGroups => _spawnGroups(MySession.Static?.GetComponent<MyGlobalEncountersGenerator>());
-        private static float m_spawnGroupTotalFrequencies => _spawnGroupTotalFrequencies(MySession.Static?.GetComponent<MyGlobalEncountersGenerator>());
-        private static List<float> m_spawnGroupCumulativeFrequencies => _spawnGroupCumulativeFrequencies(MySession.Static?.GetComponent<MyGlobalEncountersGenerator>());
-        private static ConcurrentDictionary<long, HashSet<MyGlobalEncounterComponent>> m_encounterComponents => _encounterComponentsDict(MySession.Static?.GetComponent<MyGlobalEncountersGenerator>());
-        private static ConcurrentDictionary<long, long> m_encountersGps => _encountersGps(MySession.Static?.GetComponent<MyGlobalEncountersGenerator>());
-        private static ConcurrentDictionary<long, int> m_encountersTimer => _encountersTimer(MySession.Static?.GetComponent<MyGlobalEncountersGenerator>());
-        private static Queue<MyEncounterSpawnInfo> m_spawnQueue => _spawnQueue(MySession.Static?.GetComponent<MyGlobalEncountersGenerator>());
-        private static MyGlobalEncountersGeneratorDefinition m_definition => _definition(MySession.Static?.GetComponent<MyGlobalEncountersGenerator>());
 
         // 매 프레임마다 호출되는 업데이트 함수
         public override void Update()
@@ -327,6 +258,13 @@ namespace TorchPlugin
             {
                 CustomUpdate();
                 Tick++;
+                // 3초(180틱)마다 LoadGlbalEncounterCap 호출
+                if (Tick % 180 == 0)
+                {
+                    var windowField = typeof(CustomInstance).GetField("_customWindow", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var customWindow = windowField?.GetValue(_customInstance) as CustomWindow;
+                    customWindow?.Dispatcher.Invoke(() => customWindow.LoadGlbalEncounterCap());
+                }
                 // 일정 틱마다 스테이션 엔티티 ID 리셋
                 if (Tick - _lastResetTick >= ResetIntervalTicks)
                 {
@@ -342,45 +280,11 @@ namespace TorchPlugin
             }
         }
 
-        private struct MyEncounterSpawnInfo
-        {
-            public long EncounterId; // 인카운터 고유 ID
-            public long OwnerId; // 소유자 ID
-            public MySpawnGroupDefinition SpawnGroup; // 스폰 그룹 정의
-            public Vector3D Position; // 스폰 위치
-        }
 
 
 
 
-        private void GlobalEncounterCleanup()
-        {
-            try
-            {
-                // 활성화된 인카운터가 없으면 종료
-                if (EncGen == null || m_encounterComponents.Count == 0)
-                    return;
-                if (MySession.Static.Settings.GlobalEncounterCap <= m_activeEncounters ||!MySession.Static.NPCBlockLimits.HasRemainingPCU(true))
-                {
-                    // 활성화된 인카운터를 순회하며 GPS 업데이트 및 제거
-                    foreach (var kv in m_encountersTimer)
-                    {
-                        long encounterId = kv.Key;
-                        if (kv.Value <= 60)
-                        {
-                            RemoveGlobalEncounter(encounterId);
-                            return;
-                        }
-                    }
-                    
-                }
-                return;
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Exception in GlobalEncounterCleanup: {ex}");
-            }
-        }
+
 
         // 커스텀 업데이트(패치 업데이트 등)
         private void CustomUpdate()
@@ -388,12 +292,6 @@ namespace TorchPlugin
             // TODO: 여기에 매 프레임마다 실행할 코드를 작성하세요.
             PatchHelpers.PatchUpdates();
         }
-
-
-        [ReflectedMethod(Name = "RemoveGlobalEncounter", Type = typeof(MyGlobalEncountersGenerator))]
-        private static Action<MyGlobalEncountersGenerator, long> _removeGlobalEncounter;
-        private static void RemoveGlobalEncounter(long id) => _removeGlobalEncounter(EncGen, id);
-
 
 
 

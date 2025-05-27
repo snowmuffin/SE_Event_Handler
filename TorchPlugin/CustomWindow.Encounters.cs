@@ -13,7 +13,7 @@ using Sandbox.Definitions;
 using SpaceEngineers.Game.EntityComponents.GameLogic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-
+using Shared.Logging;
 namespace TorchPlugin
 {
     public partial class CustomWindow : Window
@@ -78,7 +78,46 @@ namespace TorchPlugin
                 LoadActiveGlobalEncountersData(); // Refresh the grid after removal
             }
         }
+        public void LoadGlbalEncounterCap()
+        {
+            Plugin.Instance.Log.Info("LoadGlbalEncounterCap() called");
+            var generatorInstance = MySession.Static.GetComponent<MyGlobalEncountersGenerator>();
 
+            if (generatorInstance == null)
+            {
+                Plugin.Instance.Log.Info("MyGlobalEncountersGenerator instance is null");
+                return;
+            }
+
+            var activeEncountersField = typeof(MyGlobalEncountersGenerator).GetField("m_activeEncounters", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (activeEncountersField == null)
+            {
+                Plugin.Instance.Log.Error("Failed to find m_activeEncounters field in MyGlobalEncountersGenerator.");
+                return;
+            }
+            globalEncounterCap = MySession.Static.Settings.GlobalEncounterCap;
+            var activeEncountersObj = activeEncountersField.GetValue(generatorInstance);
+
+            if (activeEncountersObj == null)
+            {
+                Plugin.Instance.Log.Info("No active global encounters found.");
+                activeEncounters = 0;
+                return;
+            }
+            var mActiveEncountersField = typeof(MyGlobalEncountersGenerator).GetField("m_activeEncounters", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (mActiveEncountersField != null)
+            {
+                activeEncounters = (int)mActiveEncountersField.GetValue(generatorInstance);
+            }
+            else if (activeEncountersObj is System.Collections.ICollection collection)
+            {
+                activeEncounters = collection.Count;
+            }
+            else
+            {
+                activeEncounters = 0;
+            }
+        }
         // Use reflection to call the private RemoveGlobalEncounter method in MyGlobalEncountersGenerator
         private void RemoveGlobalEncounter(long encounterId)
         {
