@@ -80,7 +80,6 @@ namespace TorchPlugin
         }
         public void LoadGlbalEncounterCap()
         {
-            Plugin.Instance.Log.Info("LoadGlbalEncounterCap() called");
             var generatorInstance = MySession.Static.GetComponent<MyGlobalEncountersGenerator>();
 
             if (generatorInstance == null)
@@ -153,16 +152,17 @@ namespace TorchPlugin
                 return;
             }
             var encounterComponents = encounterComponentsField.GetValue(generatorInstance) as ConcurrentDictionary<long, HashSet<MyGlobalEncounterComponent>>;
-            var encounterTimer = encounterTimerField.GetValue(generatorInstance) as ConcurrentDictionary<long, long>;
+            var encounterTimer = encounterTimerField.GetValue(generatorInstance) as ConcurrentDictionary<long, int>;
             if (encounterComponents == null || encounterComponents.Count == 0)
             {
                 return;
             }
             _activeEncounterCollection.Clear();
+            ActiveGlobalEncountersGrid.ItemsSource = null;
             foreach (var kv in encounterComponents)
             {
                 long encounterId = kv.Key;
-                long timer = 0;
+                int timer = 0;
                 if (encounterTimer != null && encounterTimer.TryGetValue(encounterId, out var t))
                     timer = t;
                 foreach (var comp in kv.Value)
