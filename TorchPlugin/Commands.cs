@@ -18,6 +18,9 @@ using System.Reflection;
 using Sandbox.ModAPI;
 using VRage.ModAPI;
 using VRage;
+using SpaceEngineers.Game.SessionComponents;
+using System.Collections.Concurrent;
+using SpaceEngineers.Game.EntityComponents.GameLogic;
 
 namespace TorchPlugin
 {
@@ -531,6 +534,46 @@ namespace TorchPlugin
             }
         }
 
+        [Command("cmd globalencounters gps", "Lists the globalencounters gps to the player")]
+        [Permission(MyPromoteLevel.None)]
+        public void GlobalEncounterGps()
+        {
+            var generatorInstance = MySession.Static.GetComponent<MyGlobalEncountersGenerator>();
+            if (generatorInstance == null)
+            {
+                return;
+            }
+            var encounterComponentsField = typeof(MyGlobalEncountersGenerator).GetField("m_encounterComponents", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (encounterComponentsField == null)
+            {
+                return;
+            }
+            var encounterComponents = encounterComponentsField.GetValue(generatorInstance) as ConcurrentDictionary<long, HashSet<MyGlobalEncounterComponent>>;
+
+            if (encounterComponents == null || encounterComponents.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var kv in encounterComponents)
+            {
+                long encounterId = kv.Key;
+
+                foreach (var comp in kv.Value)
+                {
+                    var entity = comp.Entity;
+                    var Position = entity is VRage.Game.Entity.MyEntity ent ? ent.PositionComp?.GetPosition() : Vector3D.Zero;
+                    var gps = MyAPIGateway.Session?.GPS.Create(
+                        ($"GlobalEncounter {entity?.EntityId}"),
+                        ($"Global Encounter at {Position}"),
+                        Position ?? Vector3D.Zero,
+                        true
+                    );
+                    MyAPIGateway.Session?.GPS.AddGps(Context.Player.IdentityId, gps);
+                }
+            }
+        }
         [ReflectedGetter(Name = "m_stations", Type = typeof(MyFaction))]
         private static Func<MyFaction, Dictionary<long, MyStation>> _stations;
     }
