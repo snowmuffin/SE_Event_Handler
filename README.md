@@ -1,147 +1,260 @@
-# Space Engineers Plugin Template
+# SE Event Handler
 
-[Client only version of the template](https://github.com/sepluginloader/ClientPluginTemplate)
+A comprehensive Space Engineers plugin system for managing game events, encounters, factions, and custom spawning across Client, Dedicated Server, and Torch environments.
 
-## Prerequisites
+## Overview
 
-- [Space Engineers](https://store.steampowered.com/app/244850/Space_Engineers/)
-- [Python 3.x](https://python.org) (tested with 3.9)
-- [Plugin Loader](https://github.com/sepluginloader)
-- [Torch Server](https://torchapi.com/) in `C:\Torch`, run `Torch.Server.exe` once to prepare
-- [.NET Framework 4.8.1 Developer Pack](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net481)
+SE Event Handler is a multi-platform plugin that provides advanced game management capabilities for Space Engineers. It consists of three main components that work together to provide a unified event handling system:
 
-## Create your plugin project
+- **ClientPlugin**: Client-side functionality with configurable UI
+- **DedicatedPlugin**: Dedicated server-side functionality  
+- **TorchPlugin**: Torch server integration with advanced management interface
 
-1. Click on **Use this template** (top right corner on GitHub) and follow the wizard to create your repository
-2. Clone your repository to have a local working copy
-3. Run `setup.py`, enter the name of your plugin project in `CapitalizedWords` format
-4. Let `setup.py` auto-detect your install locations or fill them in manually
-5. Open the solution in Visual Studio or Rider
-6. Make a test build, it should deploy the resulting files to their respective target folders (see them in the build log)
-7. Test that the empty plugin can be enabled in Plugin Loader (client), Torch Server's UI and the Dedicated Server's UI
-9. Replace the contents of this file with the description of your plugin
-10. Follow the TODO comments in the source code
-11. Look into the source code of other plugins for examples on how to patch the game
+## Features
 
-You may find the source code of these plugins inspirational:
-- [Performance Improvements](https://github.com/viktor-ferenczi/performance-improvements)
-- [Multigrid Projector](https://github.com/viktor-ferenczi/multigrid-projector)
-- [Toolbar Manager](https://github.com/viktor-ferenczi/toolbar-manager)
+### Core Features
+- **Event Management**: Monitor and control global events in Space Engineers
+- **Encounter Management**: Track and manage global encounters with removal capabilities
+- **Faction Management**: View detailed faction information, members, and reputation systems
+- **Station Management**: Monitor trading stations, inventory, and configurations
+- **Custom Spawning**: Advanced ship spawning system with player targeting
+- **Real-time Monitoring**: Live updates of game state and statistics
 
-In case of questions please feel free to ask the SE plugin developer community on the
-[Plugin Loader](https://discord.gg/6ETGRU3CzR) or the [Torch](https://discord.gg/xNFpHM6V8Q)
-Discord server in their relevant text channels. They also have dedicated channels for
-plugin ideas, should you look for a new one.
+### TorchPlugin Specific Features
+- **Interactive GUI**: Multi-tab interface for comprehensive game management
+- **Faction Reputation Editor**: Direct editing of player-faction relationships
+- **Station Store Management**: View and monitor trading station inventories
+- **Active Encounter Tracking**: Real-time monitoring of active global encounters
+- **Custom Ship Spawner**: Enhanced cargo ship spawning with custom logic
+- **Admin Commands**: Console commands for faction and station management
 
-_Good luck!_
+### Shared Components
+- **Harmony Patching**: Runtime code modification system
+- **Configuration Management**: Persistent configuration across all components
+- **Logging System**: Comprehensive logging with multiple severity levels
+- **Cross-Platform Compatibility**: Works across Client, Dedicated, and Torch environments
 
-## Remarks
+## Architecture
 
-### Plugin configuration
+The project uses a shared codebase approach:
 
-You can have a nice configuration dialog with little effort in the game client.
-Customize the `Config` class in the `ClientPlugin` project, just follow the examples.
-It supports many different data types, including key binding. Once you have more
-options than can fit on the screen the dialog will have a vertical scrollbar.
+```
+├── ClientPlugin/          # Client-side plugin
+├── DedicatedPlugin/       # Dedicated server plugin  
+├── TorchPlugin/          # Torch server plugin with GUI
+└── Shared/               # Common functionality
+    ├── Config/           # Configuration management
+    ├── Logging/          # Logging system
+    ├── Patches/          # Harmony patches
+    └── Plugin/           # Core plugin interfaces
+```
 
-![Example config dialog](Doc/ConfigDialogExample.png "Example config dialog")
+## Requirements
 
-The server plugin configuration works differently, please see the `Config` folder
-of the `Shared` project for that. Torch plugins also have a XAML descriptor for
-their configuration. The client side `Config` class is not integrated with the
-server side configuration, currently.
+### Development Environment
+- **Visual Studio 2017+** or **Visual Studio 2022**
+- **.NET Framework 4.8.1**
+- **Space Engineers** (for Client/Dedicated builds)
+- **Torch Server** (for Torch builds)
 
-### Conditional compilation
+### Dependencies
+- **Lib.Harmony 2.3.3** - Runtime patching framework
+- **Newtonsoft.Json 13.0.2** - JSON serialization (Torch/Dedicated only)
+- **All Space Engineers assemblies** - Game integration
 
-- DedicatedPlugin defines `DEDICATED`, TorchPlugin defines `TORCH`.
-  You can use those names for conditional compilation by `#if` blocks in the Shared project.
-  For example if you want your code to compile for client and dedicated server plugins, but
-  not for the Torch plugin, then put it into a `#if !TORCH` ... `#endif` block.
+## Initial Setup
 
-### Shared project
+**Important**: This project requires manual assembly reference setup as automated dependency resolution is not yet implemented.
 
-- Put any code you can share between the plugin projects into the Shared project.
-  Try to keep the redundancy at the minimum.
+### 1. Configure Directory Paths
 
-- The DLLs required by your Shared code need to be added as a dependency to all the projects,
-  even if some of the code is not used by one of the projects.
+Edit `Directory.Build.props` and update the paths to match your installation:
 
-- You can delete the projects you don't need. If you want only a single project,
-  then move over what is in the Shared one, then you can delete Shared.
+```xml
+<Project>
+  <PropertyGroup>
+    <!-- Path to Space Engineers client installation -->
+    <Bin64>C:\Program Files (x86)\Steam\steamapps\common\SpaceEngineers\Bin64</Bin64>
+    
+    <!-- Path to Space Engineers Dedicated Server -->
+    <Dedicated64>C:\Program Files (x86)\Steam\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64</Dedicated64>
+    
+    <!-- Path to Torch Server installation -->
+    <Torch>C:\Path\To\Your\Torch\Server</Torch>
+  </PropertyGroup>
+</Project>
+```
 
-### Torch plugin
+### 2. Assembly Dependencies
 
-- For Torch plugins see also the official
-  [Torch Plugin Template](https://torchapi.com/wiki/index.php/Torch_Plugin_Template),
-  it has some additional information in its `README.txt` file.
+Each project requires specific assemblies from their respective installations. The projects are pre-configured to reference assemblies from the paths defined in `Directory.Build.props`.
 
-- If you don't need the config UI in Torch for your plugin, then remove the IWpfPlugin
-  from the Plugin class and the `xaml` and `xaml.cs` files. Also remove the now unused
-  `GetControl` method.
+#### ClientPlugin Dependencies
+The ClientPlugin requires **100+ assemblies** from the Space Engineers client installation, including:
+- Core VRage assemblies (VRage.dll, VRage.Game.dll, etc.)
+- Sandbox assemblies (Sandbox.Game.dll, Sandbox.Common.dll, etc.)
+- Space Engineers assemblies (SpaceEngineers.Game.dll, etc.)
+- System assemblies and dependencies
 
-- While you can use HarmonyLib for patching in Torch plugins, Torch has its own patching
-  mechanism, which is more compatible with other plugins, but less convenient to use.
-  If you want to remove Harmony from the Torch plugin, then search for USE_HARMONY in all
-  files, which will show you where to make changes. Also remove Lib.Harmony from the
-  TorchPlugin project's NuGet package dependencies. Please note then in this case you
-  must also remove all uses of Harmony from your Torch plugin code.
+#### DedicatedPlugin Dependencies  
+Similar to ClientPlugin but uses assemblies from the Dedicated Server installation.
 
-### How to prevent the potential crash after game updates
+#### TorchPlugin Dependencies
+Requires assemblies from both Torch installation and Dedicated Server:
+- All Torch-specific assemblies (Torch.dll, Torch.API.dll, etc.)
+- Dedicated Server assemblies
+- WPF assemblies for the management interface
 
-Please use the `EnsureCode` attribute on patch methods to safely skip loading the plugin
-with an error logged should the code in any of the methods patched would change as part of
-a game update. It is a good way to prevent blaming crashes on your plugin after game updates,
-so your plugin can remain safely enabled (but effectively disabled) until you have a chance
-to release an update for compatibility with the new game version. Please see the examples in
-the `Shared/Patches` folder on how to use this attribute.
+### 3. Verify Assembly References
 
-The hexadecimal hash code is logged in case of a mismatch, so you can read them from the logs
-for any new method you patch, just leave the string initially empty in the `EnsureCode`
-attribute, then replace with the value from the error log line after you run your plugin
-with the patch for the first time.
+After configuring paths, ensure all assembly references resolve correctly:
 
-On Proton (Linux) this check tends to cause issues, therefore there is a configuration flag
-to turn it OFF. Setting the `SE_PLUGIN_DISABLE_METHOD_VERIFICATION` environment variable to
-any value on the player's host also disables game code verification.
+1. Open the solution in Visual Studio
+2. Check for missing references in each project
+3. Verify that the paths in `Directory.Build.props` are correct
+4. Rebuild the solution to confirm all dependencies are resolved
 
-### Debugging
+## Building the Project
 
-- Always use a debug build if you want to set breakpoints and see variable values.
-- A debug build defines `DEBUG`, so you can add conditional code in `#if DEBUG` blocks.
-- While debugging a specific target unload the other two. It prevents the IDE to be confused.
-- If breakpoints do not "stick" or do not work, then make sure that:
-  - Other projects are unloaded, only the debugged one and Shared are loaded.
-  - Debugger is attached to the running process.
-  - You are debugging the code which is running (no code changes made since the build).
-- Transpiler patches will write a `harmony.log.txt` file to your `Desktop` while running `Debug`
-  builds. Never release a debug build to your users, because that would litter their desktop
-  as well.
-- To debug transpiler changes to the IL code it is most practical to generate the files
-  of the method's IL code before and after the change made, so you can just diff them.
-  Please see the transpiler example under the `Shared/Patches` folder for the details.
+### Build Configuration
+The solution supports two build configurations:
+- **Debug**: Development build with debugging symbols
+- **Release**: Optimized production build
 
-### Troubleshooting
+### Build Process
+1. Open `EventHandler.sln` in Visual Studio
+2. Select your target configuration (Debug/Release)
+3. Build the entire solution or individual projects
+4. Built assemblies will be automatically deployed using the deploy scripts
 
-- If the IDE looks confused, then restarting it and the debugged game usually works.
-- If the restart did not work, then try to delete caches used by your IDE and restart.
-- If your build cannot deploy (just runs in a loop), then something locks the DLL file.
-- Look for running game processes (maybe stuck running in the background) and kill them.
+### Deployment
+Each project includes automated deployment:
+- **ClientPlugin**: Deploys to `%Bin64%\Plugins\Local\`
+- **DedicatedPlugin**: Deploys to `%Dedicated64%\Plugins\Local\`  
+- **TorchPlugin**: Deploys to Torch plugins directory
 
-### Release
+## Usage
 
-- Always make your final release from a RELEASE build. (More optimized, removes debug code.)
-- Always test your RELEASE build before publishing. Sometimes is behaves differently.
-- In case of client plugins the Plugin Loader compiles your code, watch out for differences.
+### Client Plugin
+- Automatically loads with Space Engineers client
+- Access configuration via mod settings or in-game interface
+- Provides client-side event handling and patches
 
-### Communication
+### Dedicated Server Plugin
+- Place in dedicated server plugins directory
+- Runs automatically with server startup
+- Provides server-side event management
 
-- In your documentation always include how players or server admins should report bugs.
-- Try to be reachable and respond on a timely manner over your communication channels.
-- Be open for constructive critics.
+### Torch Plugin
+- Install through Torch plugin manager or manual placement
+- Access management interface through Torch GUI
+- Use admin commands for advanced management
 
-### Abandoning your project
+### Admin Commands (Torch)
+```
+!cmd factions              # List all factions with details
+!cmd stations              # List all stations with information  
+!cmd stations gps [tag]    # Generate GPS coordinates for stations
+!cmd addspacestation       # Add a new trading station
+!cmd removespacestation    # Remove a trading station
+```
 
-- Always consider finding a new maintainer, ask around at least once.
-- If you ever abandon the project, then make it clear on its GitHub page.
-- Abandoned projects should be made hidden on PluginHub and Torch's plugin list.
-- Keep the code available on GitHub, so it can be forked and continued by others.
+### Management Interface (Torch)
+The Torch plugin provides a multi-tab interface:
+- **Factions**: View faction details, members, reputation management
+- **Global Events**: Monitor active global events
+- **Encounters**: Track and manage global encounters  
+- **Custom Spawn**: Advanced ship spawning controls
+
+## Development
+
+### Key Components
+
+#### Event Handling
+- Global event monitoring and management
+- Custom event triggers and responses
+- Event state persistence
+
+#### Encounter System
+- Global encounter tracking
+- Real-time encounter management
+- Encounter removal capabilities
+
+#### Faction Management
+- Comprehensive faction data access
+- Reputation system integration
+- Member management
+
+#### Custom Spawning
+- Enhanced cargo ship spawning
+- Player-targeted spawning
+- Custom spawn group support
+
+### Extending the Plugin
+1. Add new functionality to the `Shared` project for cross-platform features
+2. Implement platform-specific features in individual plugin projects
+3. Use Harmony patches for game code modifications
+4. Follow the existing logging and configuration patterns
+
+## Configuration
+
+### Client Configuration
+- Configuration file: `EventHandler.cfg` in SE user data directory
+- Supports runtime configuration changes
+- Settings persist across game sessions
+
+### Server Configuration  
+- Configuration managed through plugin interfaces
+- Torch configuration available through management UI
+- Settings synchronized across server restarts
+
+## Troubleshooting
+
+### Common Issues
+
+**Assembly Reference Errors**
+- Verify paths in `Directory.Build.props` are correct
+- Ensure all required installations are present
+- Check that assembly versions match your game installation
+
+**Plugin Not Loading**
+- Verify deployment directory is correct
+- Check plugin compatibility with game version
+- Review log files for loading errors
+
+**Missing Dependencies**
+- Ensure all required assemblies are available
+- Verify NuGet packages are restored
+- Check for version conflicts
+
+### Logs and Debugging
+- Plugin logs are written to respective game/server log directories
+- Debug builds include additional logging information
+- Use the built-in logging system for troubleshooting
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes following the existing code style
+4. Test across all supported platforms
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For issues, questions, or contributions:
+- Open an issue on GitHub
+- Check existing documentation and code comments
+- Review the troubleshooting section
+
+## Version History
+
+- **v1.0.0**: Initial release with multi-platform support
+  - Complete faction and station management
+  - Global event and encounter handling
+  - Custom spawning system
+  - Torch GUI interface
