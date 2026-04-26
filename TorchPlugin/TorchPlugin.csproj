@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TorchPlugin</RootNamespace>
     <AssemblyName>EventHandler</AssemblyName>
-    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <LangVersion>7.3</LangVersion>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -103,7 +104,12 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers.Game">
-      <HintPath>..\..\..\SteamLibrary\steamapps\common\SpaceEngineers\Bin64\SpaceEngineers.Game.dll</HintPath>
+      <HintPath>$(Torch)\DedicatedServer64\SpaceEngineers.Game.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(UserProfile)\.nuget\packages\lib.harmony\2.3.3\lib\net48\0Harmony.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="SteamKit2, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Torch)\SteamKit2.dll</HintPath>
@@ -618,19 +624,41 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConfigView.xaml.cs" />
+    <Compile Include="ConfigView.xaml.cs">
+      <DependentUpon>ConfigView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CustomInstance.cs" />
+    <Compile Include="CustomWindow.xaml.cs">
+      <DependentUpon>CustomWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CustomWindow.CustomSpawn.cs">
+      <DependentUpon>CustomWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CustomWindow.Encounters.cs">
+      <DependentUpon>CustomWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CustomWindow.Factions.cs">
+      <DependentUpon>CustomWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CustomWindow.GlobalEvents.cs">
+      <DependentUpon>CustomWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CustomSpawnHandler.cs" />
-    <Compile Include="CustomWindow.CustomSpawn.cs" />
-    <Compile Include="CustomWindow.Encounters.cs" />
-    <Compile Include="CustomWindow.Factions.cs" />
-    <Compile Include="CustomWindow.GlobalEvents.cs" />
-    <Compile Include="CustomWindow.xaml.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="PluginLogger.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="ConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CustomWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Content Include="deploy.bat" />
@@ -646,18 +674,8 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Page Include="ConfigView.xaml" />
-    <Page Include="CustomWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\Shared\Shared.projitems" Label="Shared" />
-  <PropertyGroup>
-    <PreBuildEvent>call "$(SolutionDir)verify_props.bat" "$(Torch)"</PreBuildEvent>
-  </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>call "$(ProjectDir)deploy.bat" "$(TargetFileName)" "$(TargetDir)" "$(Torch)" "$(SolutionName)"</PostBuildEvent>
   </PropertyGroup>

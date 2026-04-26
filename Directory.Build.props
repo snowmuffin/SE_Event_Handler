@@ -6,7 +6,7 @@
     <!-- Folder containing SpaceEngineersDedicated.exe -->
     <Dedicated64>E:\SteamLibrary\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64</Dedicated64>
 
-    <!-- Folder containing Torch.Server.exe -->
-    <Torch>E:\SE_Plugin\SE_Test_Server\torch-server</Torch>
+    <!-- Folder containing Torch.Server.exe (Center instance) -->
+    <Torch>D:\Server\Space_Engineers\Center</Torch>
   </PropertyGroup>
 </Project>

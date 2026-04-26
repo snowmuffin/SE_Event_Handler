@@ -458,6 +458,12 @@ namespace TorchPlugin
         [Permission(MyPromoteLevel.Admin)]
         public void ResetStationEntityIds()
         {
+            if (MySession.Static?.Settings == null || !MySession.Static.Settings.EnableEconomy)
+            {
+                Respond("ResetStationEntityIds skipped because economy is disabled.");
+                return;
+            }
+
             if (MySession.Static?.Factions == null)
             {
                 Respond("Stations data is not available. Ensure the game session is running.");
@@ -495,8 +501,15 @@ namespace TorchPlugin
                 var updateStationsMethod = typeof(MySessionComponentEconomy).GetMethod("UpdateStations", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
                 if (updateStationsMethod != null)
                 {
-                    updateStationsMethod.Invoke(economyComponent, null);
-                    Respond("UpdateStations method invoked successfully.");
+                    try
+                    {
+                        updateStationsMethod.Invoke(economyComponent, null);
+                        Respond("UpdateStations method invoked successfully.");
+                    }
+                    catch (TargetInvocationException tie) when (tie.InnerException != null)
+                    {
+                        Respond($"UpdateStations invocation failed: {tie.InnerException.GetType().Name}: {tie.InnerException.Message}");
+                    }
                 }
                 else
                 {

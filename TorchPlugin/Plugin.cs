@@ -53,8 +53,8 @@ using VRageMath;
 
 namespace TorchPlugin
 {
-    // Torch 플러그인 기본 클래스, WPF 플러그인, 공통 플러그인 인터페이스 구현
-    public class Plugin : TorchPluginBase, IWpfPlugin, ICommonPlugin
+    // Torch 플러그인 기본 클래스, WPF 설정 UI(IWpfPlugin), 공통 플러그인 인터페이스 구현
+    public class Plugin : TorchPluginBase, ICommonPlugin, IWpfPlugin
     {
         public const string PluginName = "EventHandler"; // 플러그인 이름 상수
         public static Plugin Instance { get; private set; } // 싱글턴 인스턴스
@@ -69,9 +69,6 @@ namespace TorchPlugin
         private static readonly string ConfigFileName = $"{PluginName}.cfg"; // 설정 파일 이름
         private static readonly short ONE_MINUTE = 60; // 1분(초 단위)
 
-        public UserControl GetControl() => control ?? (control = new ConfigView()); // WPF 설정창 반환
-        private ConfigView control; // 설정창 컨트롤
-
         private TorchSessionManager sessionManager; // 세션 매니저
 
         private bool initialized; // 초기화 여부
@@ -79,7 +76,9 @@ namespace TorchPlugin
 
         private readonly Commands commands = new Commands(); // 명령어 객체
 
-        private CustomInstance _customInstance; // 커스텀 인스턴스
+        private ConfigView _control; // Torch 플러그인 메뉴용 설정 UI
+
+        public UserControl GetControl() => _control ?? (_control = new ConfigView());
 
         private long _lastResetTick = 0; // 마지막 리셋 틱
         private const long ResetIntervalTicks = 36000; // 리셋 주기(틱 단위)
@@ -122,10 +121,7 @@ namespace TorchPlugin
             sessionManager.SessionStateChanged += SessionStateChanged;
 
             // 커스텀 인스턴스 싱글턴 초기화 및 시작
-            _customInstance = CustomInstance.GetInstance();
-            _customInstance.Start();
-
-            _customInstance.Communicate("Plugin initialized.");
+            Log.Info("Plugin initialized.");
 
             initialized = true;
         }
@@ -162,10 +158,6 @@ namespace TorchPlugin
                 sessionManager.SessionStateChanged -= SessionStateChanged;
                 sessionManager = null;
 
-                // 커스텀 인스턴스 정지
-                _customInstance?.Stop();
-                _customInstance = null;
-
                 Log.Debug("Disposed");
             }
 
@@ -179,6 +171,14 @@ namespace TorchPlugin
         {
             try
             {
+                // Stations/economy objects are not valid when economy is disabled.
+                // On some game versions calling UpdateStations in this state throws.
+                if (MySession.Static?.Settings == null || !MySession.Static.Settings.EnableEconomy)
+                {
+                    Log.Info("ResetStationEntityIds skipped because economy is disabled.");
+                    return;
+                }
+
                 // 세션 및 팩션 데이터 확인
                 if (MySession.Static?.Factions == null)
                 {
@@ -224,8 +224,15 @@ namespace TorchPlugin
                     var updateStationsMethod = typeof(MySessionComponentEconomy).GetMethod("UpdateStations", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (updateStationsMethod != null)
                     {
-                        updateStationsMethod.Invoke(economyComponent, null);
-                        Log.Info("UpdateStations method invoked successfully.");
+                        try
+                        {
+                            updateStationsMethod.Invoke(economyComponent, null);
+                            Log.Info("UpdateStations method invoked successfully.");
+                        }
+                        catch (TargetInvocationException tie) when (tie.InnerException != null)
+                        {
+                            Log.Error($"UpdateStations invocation failed: {tie.InnerException}");
+                        }
                     }
                     else
                     {
@@ -258,13 +265,6 @@ namespace TorchPlugin
             {
                 CustomUpdate();
                 Tick++;
-                // 3초(180틱)마다 LoadGlbalEncounterCap 호출
-                if (Tick % 180 == 0)
-                {
-                    var windowField = typeof(CustomInstance).GetField("_customWindow", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    var customWindow = windowField?.GetValue(_customInstance) as CustomWindow;
-                    customWindow?.Dispatcher.Invoke(() => customWindow.LoadGlbalEncounterCap());
-                }
                 // 일정 틱마다 스테이션 엔티티 ID 리셋
                 if (Tick - _lastResetTick >= ResetIntervalTicks)
                 {

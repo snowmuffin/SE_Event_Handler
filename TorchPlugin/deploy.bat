@@ -26,7 +26,7 @@ set COMMON_PLUGIN_DIR=%TORCH%\Plugins
 REM Create this directory if it does not exist
 if not exist "%COMMON_PLUGIN_DIR%" (
     echo Creating "Plugins\" folder in "%TORCH%\"
-    mkdir -p "%COMMON_PLUGIN_DIR%" >NUL 2>&1
+    mkdir "%COMMON_PLUGIN_DIR%" >NUL 2>&1
 )
 
 REM Get the specific plugin directory
@@ -35,7 +35,7 @@ set PLUGIN_DIR=%COMMON_PLUGIN_DIR%\%PROJECT%
 REM Create this directory if it does not exist
 if not exist "%PLUGIN_DIR%" (
     echo Creating "%PROJECT%\" folder in "%COMMON_PLUGIN_DIR%\"
-    mkdir -p "%PLUGIN_DIR%" >NUL 2>&1
+    mkdir "%PLUGIN_DIR%" >NUL 2>&1
 )
 
 REM Copy the plugin into the plugin directory
